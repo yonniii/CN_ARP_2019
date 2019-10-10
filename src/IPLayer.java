@@ -75,10 +75,10 @@ public class IPLayer implements BaseLayer {
         return true;
     }
 
-    public boolean Receive(byte[] input){
-        int size = ipHeader.srcSize;
-        for (int i = 0; i < size; i++) {
-            if(input[i+size] != ipHeader.ipSrcAddr[0])
+    public boolean Receive(byte[] input){ //검증필요@@@ 받은 packet의 dst와 나의 주소인 src가 같은지 비교하도록 코드 작성
+        int dstIndex = ipHeader.dstIndex;
+        for (int i = 0; i < ipHeader.srcSize; i++) {
+            if(input[i+dstIndex] != ipHeader.ipSRCAddr[i])
                 return false;
         }
         return true;
