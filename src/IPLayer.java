@@ -3,19 +3,36 @@ import java.util.ArrayList;
 public class IPLayer implements BaseLayer {
 
     public class _IP_HEADER{
-        byte[] ipSrcAddr; //4
+        byte  ipVerLen; //1
+        byte ipToS; //1
+        byte[] ipLen; //2
+        byte[] ipID; //2
+        byte[] ipFragOff; //2
+        byte ipTTL; // 1
+        byte ipProto; //1
+        byte[] ipCksum; //2
         byte[] ipDSTAddr; //4
+        byte[] ipSRCAddr; //4
         byte[] ipDATA;
 
+        public _IP_HEADER() {
+            this.ipVerLen = 0x00;
+            this.ipToS = 0x00;
+            this.ipLen = new byte[2];
+            this.ipID = new byte[2];
+            this.ipFragOff = new byte[2];
+            this.ipTTL = 0x00;
+            this.ipProto = 0x00;
+            this.ipCksum = new byte[2];
+            this.ipDSTAddr = new byte[4];
+            this.ipSRCAddr = new byte[4];
+            this.ipDATA = null;
+        }
+        int dstIndex = 12;
         int srcSize = 4;
         int dstSize = 4;
 
-        public _IP_HEADER(){
-            this.ipSrcAddr = new byte[4];
-            this.ipDSTAddr = new byte[4];
-            this.ipDATA = null;
-        }
-    } //헤더 총 8바이트
+    }
 
     _IP_HEADER ipHeader = new _IP_HEADER();
     final int IPHEADERSIZE = 8;
@@ -32,8 +49,8 @@ public class IPLayer implements BaseLayer {
 
     private byte[] ObjToByte(_IP_HEADER header, int length){
         byte[] buf = new byte[length + IPHEADERSIZE] ;
-        System.arraycopy(header.ipDSTAddr, 0, buf, 0, header.dstSize);
-        System.arraycopy(header.ipSrcAddr, 0, buf, 0+header.dstSize, header.srcSize);
+        System.arraycopy(header.ipDSTAddr, 0, buf, header.dstIndex, header.dstSize);
+        System.arraycopy(header.ipSRCAddr, 0, buf, header.dstIndex+header.dstSize, header.srcSize);
 //        System.arraycopy(header.ipDATA, 0, buf, 0+header.srcSize +header.dstSize, length);
         return buf;
     }
