@@ -76,6 +76,17 @@ public class TCPLayer implements BaseLayer {
         return true;
     }
 
+    public boolean Send(byte[] input){
+        this.tcpHeader.tcpData = input;
+        int dataLen = input.length;
+        byte[] buf = ObjToByte(tcpHeader,dataLen);
+        int bufSize = dataLen+tcpHeader.headerSize;
+        if (((IPLayer) this.GetUnderLayer()).Send(buf,bufSize))
+            return true;
+        else
+            return false;
+    }
+
     public boolean Receive(byte[] input){
         return true;
     }
