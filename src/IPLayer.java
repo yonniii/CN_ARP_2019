@@ -67,12 +67,12 @@ public class IPLayer implements BaseLayer {
 
     public boolean Send(String dstIpAddr){
         setDstIPAddress(dstIpAddr);
-        ObjToByte(ipHeader,0);
-//        if (((ARPLayer) this.getUnderLayer()).ARP_request_send(send_ip_data))
-//            return true;
-//        else
-//            return false;
-        return true;
+        byte[] buf = ObjToByte(ipHeader,0);
+        int bufSize=buf.length;
+        if (((ARPLayer) this.GetUnderLayer()).Send(buf,bufSize))
+            return true;
+        else
+            return false;
     }
 
     public boolean Receive(byte[] input){ //검증필요@@@ 받은 packet의 dst와 나의 주소인 src가 같은지 비교하도록 코드 작성
