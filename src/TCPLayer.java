@@ -85,7 +85,32 @@ public class TCPLayer implements BaseLayer {
     }
 
     public boolean Receive(byte[] input){
+        if(!IsItMyPort(input))
+            return false;
+        byte[] buf = removeTCPHeader(input, input.length);
+        if(((ApplicationLayer)this.GetUpperLayer(0)).Receive(buf))
+            return true;
+        else
+            return false;
+    }
+
+    private boolean IsItMyPort(byte[] input){
+        for (int i = 0; i < tcpHeader.srcSize; i++) {
+            if (tcpHeader.tcpSrcPort[i] == input[i + tcpHeader.dstIndex]) //목적지이더넷주소가 자신의이더넷주소가아니면 false와 break
+                continue;
+            else {
+                System.out.println("It isn't MyPort");
+                return false;
+            }
+        }
+        System.out.println("It is MyPort");
         return true;
+    }
+
+    private byte[] removeTCPHeader(byte[] input,int length){
+        byte[] buf = new byte[length-tcpHeader.headerSize];
+        System.arraycopy(input,tcpHeader.headerSize,buf,0,length-tcpHeader.headerSize);
+        return buf;
     }
 
     byte[] intToByte4(int value) { //바이트로 변경.
