@@ -39,17 +39,13 @@ public class IPLayer implements BaseLayer {
     }
 
     public void setSrcIPAddress(String srcIPAddress){
-        ipHeader.ipSrcAddr[0] = ((byte) Integer.parseInt(srcIPAddress.substring(0, 3)));
-        ipHeader.ipSrcAddr[1] = ((byte) Integer.parseInt(srcIPAddress.substring(3, 6)));
-        ipHeader.ipSrcAddr[2] = ((byte) Integer.parseInt(srcIPAddress.substring(6, 9)));
-        ipHeader.ipSrcAddr[3] = ((byte) Integer.parseInt(srcIPAddress.substring(9, 12)));
+        int intSrcAddr = Integer.parseInt(srcIPAddress);
+        ipHeader.ipDSTAddr = intToByte4(intSrcAddr);
     }
 
     public void setDstIPAddress(String dstIPAddress) {
-        ipHeader.ipDSTAddr[0] = ((byte) Integer.parseInt(dstIPAddress.substring(0, 3)));
-        ipHeader.ipDSTAddr[1] = ((byte) Integer.parseInt(dstIPAddress.substring(3, 6)));
-        ipHeader.ipDSTAddr[2] = ((byte) Integer.parseInt(dstIPAddress.substring(6, 9)));
-        ipHeader.ipDSTAddr[3] = ((byte) Integer.parseInt(dstIPAddress.substring(9, 12)));
+        int intDstAddr = Integer.parseInt(dstIPAddress);
+        ipHeader.ipDSTAddr = intToByte4(intDstAddr);
     }
 
     public boolean Send(String dstIpAddr){
@@ -69,6 +65,17 @@ public class IPLayer implements BaseLayer {
                 return false;
         }
         return true;
+    }
+
+    byte[] intToByte4(int value) { //바이트로 변경.
+        byte[] temp = new byte[4];
+
+        temp[0] |= (byte) ((value & 0xFF000000) >> 24);
+        temp[1] |= (byte) ((value & 0xFF0000) >> 16);
+        temp[2] |= (byte) ((value & 0xFF00) >> 8);
+        temp[3] |= (byte) (value & 0xFF);
+
+        return temp;
     }
 
 
