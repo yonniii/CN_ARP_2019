@@ -18,6 +18,7 @@ public class TCPLayer implements BaseLayer {
         int dstIndex = 0;
         int dstSize = 2;
         int srcSize = 2;
+        int headerSize;
 
         public _TCP_HEADER(){
             this.tcpDSTPort = new byte[dstSize];
@@ -31,11 +32,12 @@ public class TCPLayer implements BaseLayer {
             this.tcpUrgptr = new byte[2];
             this.padding = new byte[4];
             this.tcpData = null;
+
+            this.headerSize = 24;
         }
     }
 
     _TCP_HEADER tcpHeader = new _TCP_HEADER();
-    int IPHEADERSIZE = 8;
     public int nUpperLayerCount = 0;
     public String pLayerName = null;
     public BaseLayer p_UnderLayer = null;
@@ -50,7 +52,7 @@ public class TCPLayer implements BaseLayer {
     public void ResetHeader(){ tcpHeader = new _TCP_HEADER(); }
 
     private byte[] ObjToByte(_TCP_HEADER header, int length){
-        byte[] buf = new byte[length + IPHEADERSIZE] ;
+        byte[] buf = new byte[length + header.headerSize] ;
         System.arraycopy(header.tcpDSTPort, 0, buf, header.dstIndex, header.dstSize);
         System.arraycopy(header.tcpSrcPort, 0, buf, header.dstIndex+header.dstSize, header.srcSize);
 //        System.arraycopy(header.ipDATA, 0, buf, 0+header.srcSize +header.dstSize, length);
