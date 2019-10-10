@@ -72,9 +72,6 @@ public class TCPLayer implements BaseLayer {
         header.tcpSrcPort = intToByte2(pNum);
     }
 
-    public boolean Send(String dstIpAddr){
-        return true;
-    }
 
     public boolean Send(byte[] input){
         this.tcpHeader.tcpData = input;
