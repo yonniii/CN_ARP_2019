@@ -32,8 +32,8 @@ public class IPLayer implements BaseLayer {
 
     private byte[] ObjToByte(_IP_HEADER header, int length){
         byte[] buf = new byte[length + IPHEADERSIZE] ;
-        System.arraycopy(header.ipSrcAddr, 0, buf, 0, header.srcSize);
-        System.arraycopy(header.ipDSTAddr, 0, buf, 0+header.srcSize, header.dstSize);
+        System.arraycopy(header.ipDSTAddr, 0, buf, 0, header.dstSize);
+        System.arraycopy(header.ipSrcAddr, 0, buf, 0+header.dstSize, header.srcSize);
 //        System.arraycopy(header.ipDATA, 0, buf, 0+header.srcSize +header.dstSize, length);
         return buf;
     }
