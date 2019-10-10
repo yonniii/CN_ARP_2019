@@ -16,13 +16,13 @@ public class TCPLayer implements BaseLayer {
         byte[] tcpData;
 
         int dstIndex = 0;
-        int dstSize = 2;
-        int srcSize = 2;
+        int dstPortSize = 2;
+        int srcPortSize = 2;
         int headerSize;
 
         public _TCP_HEADER(){
-            this.tcpDSTPort = new byte[dstSize];
-            this.tcpSrcPort = new byte[srcSize];
+            this.tcpDSTPort = new byte[dstPortSize];
+            this.tcpSrcPort = new byte[srcPortSize];
             this.tcpSeq = new byte[4];
             this.tcpAck = new byte[4];
             this.tcpOffset = 0x00;
@@ -53,8 +53,8 @@ public class TCPLayer implements BaseLayer {
 
     private byte[] ObjToByte(_TCP_HEADER header, int length){
         byte[] buf = new byte[length + header.headerSize] ;
-        System.arraycopy(header.tcpDSTPort, 0, buf, header.dstIndex, header.dstSize);
-        System.arraycopy(header.tcpSrcPort, 0, buf, header.dstIndex+header.dstSize, header.srcSize);
+        System.arraycopy(header.tcpDSTPort, 0, buf, header.dstIndex, header.dstPortSize);
+        System.arraycopy(header.tcpSrcPort, 0, buf, header.dstIndex+header.dstPortSize, header.srcPortSize);
 //        System.arraycopy(header.ipDATA, 0, buf, 0+header.srcSize +header.dstSize, length);
         return buf;
     }
@@ -95,7 +95,7 @@ public class TCPLayer implements BaseLayer {
     }
 
     private boolean IsItMyPort(byte[] input){
-        for (int i = 0; i < tcpHeader.srcSize; i++) {
+        for (int i = 0; i < tcpHeader.srcPortSize; i++) {
             if (tcpHeader.tcpSrcPort[i] == input[i + tcpHeader.dstIndex]) //목적지이더넷주소가 자신의이더넷주소가아니면 false와 break
                 continue;
             else {
