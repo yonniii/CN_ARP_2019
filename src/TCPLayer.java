@@ -16,12 +16,13 @@ public class TCPLayer implements BaseLayer {
         byte[] tcpData;
 
         int dstIndex = 0;
-        int dstSize = 2;
-        int srcSize = 2;
+        int dstPortSize = 2;
+        int srcPortSize = 2;
+        int headerSize;
 
         public _TCP_HEADER(){
-            this.tcpDSTPort = new byte[dstSize];
-            this.tcpSrcPort = new byte[srcSize];
+            this.tcpDSTPort = new byte[dstPortSize];
+            this.tcpSrcPort = new byte[srcPortSize];
             this.tcpSeq = new byte[4];
             this.tcpAck = new byte[4];
             this.tcpOffset = 0x00;
@@ -31,11 +32,12 @@ public class TCPLayer implements BaseLayer {
             this.tcpUrgptr = new byte[2];
             this.padding = new byte[4];
             this.tcpData = null;
+
+            this.headerSize = 24;
         }
     }
 
     _TCP_HEADER tcpHeader = new _TCP_HEADER();
-    int IPHEADERSIZE = 8;
     public int nUpperLayerCount = 0;
     public String pLayerName = null;
     public BaseLayer p_UnderLayer = null;
@@ -50,9 +52,9 @@ public class TCPLayer implements BaseLayer {
     public void ResetHeader(){ tcpHeader = new _TCP_HEADER(); }
 
     private byte[] ObjToByte(_TCP_HEADER header, int length){
-        byte[] buf = new byte[length + IPHEADERSIZE] ;
-        System.arraycopy(header.tcpDSTPort, 0, buf, header.dstIndex, header.dstSize);
-        System.arraycopy(header.tcpSrcPort, 0, buf, header.dstIndex+header.dstSize, header.srcSize);
+        byte[] buf = new byte[length + header.headerSize] ;
+        System.arraycopy(header.tcpDSTPort, 0, buf, header.dstIndex, header.dstPortSize);
+        System.arraycopy(header.tcpSrcPort, 0, buf, header.dstIndex+header.dstPortSize, header.srcPortSize);
 //        System.arraycopy(header.ipDATA, 0, buf, 0+header.srcSize +header.dstSize, length);
         return buf;
     }
@@ -70,12 +72,45 @@ public class TCPLayer implements BaseLayer {
         header.tcpSrcPort = intToByte2(pNum);
     }
 
-    public boolean Send(String dstIpAddr){
-        return true;
+
+    public boolean Send(byte[] input){
+        this.tcpHeader.tcpData = input;
+        int dataLen = input.length;
+        byte[] buf = ObjToByte(tcpHeader,dataLen);
+        int bufSize = dataLen+tcpHeader.headerSize;
+        if (((IPLayer) this.GetUnderLayer()).Send(buf,bufSize))
+            return true;
+        else
+            return false;
     }
 
     public boolean Receive(byte[] input){
+        if(!IsItMyPort(input))
+            return false;
+        byte[] buf = removeTCPHeader(input, input.length);
+        if(((ApplicationLayer)this.GetUpperLayer(0)).Receive(buf))
+            return true;
+        else
+            return false;
+    }
+
+    private boolean IsItMyPort(byte[] input){
+        for (int i = 0; i < tcpHeader.srcPortSize; i++) {
+            if (tcpHeader.tcpSrcPort[i] == input[i + tcpHeader.dstIndex]) //목적지이더넷주소가 자신의이더넷주소가아니면 false와 break
+                continue;
+            else {
+                System.out.println("It isn't MyPort");
+                return false;
+            }
+        }
+        System.out.println("It is MyPort");
         return true;
+    }
+
+    private byte[] removeTCPHeader(byte[] input,int length){
+        byte[] buf = new byte[length-tcpHeader.headerSize];
+        System.arraycopy(input,tcpHeader.headerSize,buf,0,length-tcpHeader.headerSize);
+        return buf;
     }
 
     byte[] intToByte4(int value) { //바이트로 변경.
