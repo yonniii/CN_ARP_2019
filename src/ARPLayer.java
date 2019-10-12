@@ -81,8 +81,12 @@ public class ARPLayer implements BaseLayer {
 	//테이블
 	ArrayList<CacheData> cacheTable = new ArrayList<>();
 
+	//자신의 MAC 주소
+	_ARP_MAC_ADDR myMacAddr = new _ARP_MAC_ADDR();
+
+
 	//생성자
-	public void ARPLayer(String pName) {
+	public ARPLayer(String pName) {
 		pLayerName = pName;
 		ResetHeader();
 	}
@@ -107,6 +111,11 @@ public class ARPLayer implements BaseLayer {
 			ARP_Header.ip_recvAddr.addr[i] = (byte) 0x00;
 		}
 	}
+	
+	// 받아온 byte[]의 mac주소를 내 myMacAddr에 저장하는 함수
+	public void setMacAddress(byte[] input) {
+		System.arraycopy(input, 0, myMacAddr.addr, 0, ARP_LEN_MAC_VALUE);
+	}
 
 	public boolean Send(byte[] input, int length) {
 		//들어온 input(dstIp, srcIP)를 분리하여 IP주소를 얻어냄 
@@ -117,10 +126,7 @@ public class ARPLayer implements BaseLayer {
 		//arraycopy로 dst랑 src ip주소 추출
 		System.arraycopy(input, 0, dstIpAddr.addr, 0, ARP_LEN_IP_VALUE);
 		System.arraycopy(input, 4, srcIpAddr.addr, 0, ARP_LEN_IP_VALUE);
-
-		//캐쉬 테이블에 올리는 부분
-		addCache(new CacheData(ARP_Header.mac_recvAddr, ARP_Header.ip_recvAddr, INCOMPLETE));
-
+	
 		//send용 ARPHeader세팅
 		sendARPHeader(dstIpAddr, srcIpAddr);
 
@@ -128,8 +134,14 @@ public class ARPLayer implements BaseLayer {
 		//ethernet.send로 보낼 데이터
 		byte[] sendData = addHeader(ARP_Header, input); 
 
+		//캐쉬 테이블에 올리는 부분
+		addCache(new CacheData(ARP_Header.mac_recvAddr, ARP_Header.ip_recvAddr, INCOMPLETE));
+
 		//Ethernet.send를 호출하는 부분 구현 해야함
 		//((EthernetLayer)this.GetUnderLayer()).Send(헤더);
+
+		//보내고 나면 헤더를 새로 초기화
+		ResetHeader();
 
 		return true;
 	}
@@ -186,6 +198,9 @@ public class ARPLayer implements BaseLayer {
 
 			//Ethernet send로 헤더를 붙인 데이터 전송을 구현해야함
 
+			//보내고 나면 헤더를 초기화
+			ResetHeader();
+
 		}
 		else {
 			// opcode가 2인 경우
@@ -208,12 +223,10 @@ public class ARPLayer implements BaseLayer {
 	//헤더를 추가하는 부분
 	public void sendARPHeader(_ARP_IP_ADDR dstIpAddr, _ARP_IP_ADDR srcIpAddr) {
 		ARP_Header.opCode = intToByte2(ASK);
+		ARP_Header.mac_sendAddr = myMacAddr; //앱에서 mac주소 받음 =>받아오는 함수 (논의해야할 부분)
 		ARP_Header.ip_sendAddr= srcIpAddr;
-		//ARP_Header.mac_sendAddr ;//앱에서 mac주소 받음 =>받아오는 함수
 		ARP_Header.ip_recvAddr = dstIpAddr;
-		//내 맥주소 관련 부분 따로 상의
-		//내 소스의 mac주소는 나중에 따로 초기화하든지 해야함
-		//목적지의 mac 주소는 이미 reset에서 0으로 설정   
+		//recv의 mac 주소는 이미 reset에서 0으로 설정   
 
 	}
 
@@ -226,7 +239,7 @@ public class ARPLayer implements BaseLayer {
 		System.arraycopy(input, 8, ARP_Header.mac_recvAddr.addr, 0, ARP_LEN_MAC_VALUE);
 		System.arraycopy(input, 14, ARP_Header.ip_recvAddr.addr, 0, ARP_LEN_IP_VALUE);
 		System.arraycopy(input, 18, ARP_Header.mac_sendAddr.addr, 0, ARP_LEN_MAC_VALUE);
-		System.arraycopy(input, 14, ARP_Header.ip_sendAddr.addr, 0, ARP_LEN_IP_VALUE);
+		System.arraycopy(input, 24, ARP_Header.ip_sendAddr.addr, 0, ARP_LEN_IP_VALUE);
 
 	}
 
