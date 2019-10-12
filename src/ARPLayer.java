@@ -1,4 +1,4 @@
-package ARP;
+﻿package ARP;
 
 import java.util.ArrayList;
 
@@ -393,6 +393,12 @@ public class ARPLayer implements BaseLayer {
 		public int getStatus() {
 			return this.status;
 		}
+	}
+	public byte[] macaddr_byte(_ARP_MAC_ADDR addr) {
+		return addr.addr;
+	}
+	public byte[] ipaddr_byte(_ARP_IP_ADDR addr) {
+		return addr.addr;
 	}
 
 }
