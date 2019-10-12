@@ -61,8 +61,8 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
 		m_LayerMgr.AddLayer(new ApplicationLayer("GUI"));
 		m_LayerMgr.AddLayer(new TCPLayer("TCP"));
 		m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *IP ( * TCP ( *ChatApp ( *GUI ) ) ) ) ( *ARP ( *IP ( *TCP ( *GUI ) ) ) ) )");
-		
-		EventQueue.invokeLater(new Runnable() {//GUI±¸¼º
+
+		EventQueue.invokeLater(new Runnable() {//GUIêµ¬ì„±
 			public void run() {
 				try {
 					ApplicationLayer frame = new ApplicationLayer("APP");
@@ -73,12 +73,12 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
 				}
 			}
 		});
-		
-//		Renewal_Thread thread = new Renewal_Tread();//Å×ÀÌºí °»½Å
+
+//		Renewal_Thread thread = new Renewal_Tread();//í…Œì´ë¸” ê°±ì‹ 
 //		Thread object = new Thread(thread);
 //		object.start();
 	}
-	
+
 	static ARPLayer arplayer = (ARPLayer)m_LayerMgr.GetLayer("ARP");
 	static IPLayer iplayer = (IPLayer)m_LayerMgr.GetLayer("IP");
 	static TCPLayer tcplayer = (TCPLayer)m_LayerMgr.GetLayer("TCP");
@@ -86,27 +86,25 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
 	private JTextField MAC_Address;
 
 	JComboBox addr_comboBox;
-	
-	//Renewal_Thread ¿Ï¼ºÇØ¾ßÇÔ 
-	
+
 //	static class Renewal_Thread implements Runnable{
 //		public Renewal_Thread() {
-//			
+//
 //		}
-//		
+//
 //		@Override
 //		public void run() {
 //			// TODO Auto-generated method stub
-////			byte[] mac = new byte[6];
-////			byte[] ip = new byte[4];
-////			int status =-1;
+////         byte[] mac = new byte[6];
+////         byte[] ip = new byte[4];
+////         int status =-1;
 //			while(true) {
 //				try {
-//					Thread.sleep(500);//0.5ÃÊ¸¶´Ù °»½Å
+//					Thread.sleep(500);//0.5ì´ˆë§ˆë‹¤ ê°±ì‹ 
 //				}catch(InterruptedException e){
 //					e.printStackTrace();
 //				}
-////				//arplayerÀÇ cacheÅ×ÀÌºí Á¤º¸ °¡Á®¿Í
+////            //arplayerì˜ cacheí…Œì´ë¸” ì •ë³´ ê°€ì ¸ì™€
 //				//BASIC ARP
 //
 //				ARP_CacheList.removeAll();
@@ -121,13 +119,13 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
 //					else {
 //						s = "Complete";
 //					}
-//					ARP_CacheList.addItem(ipaddr+"   "+ macaddr + "  " +  status);//È­¸é¿¡ ¶ç¿öÁö´Â °ÍÀÎÁö °í¹ÎÇØºÁ¾ßÇÔ
+//					ARP_CacheList.addItem(ipaddr+"   "+ macaddr + "  " +  status);//í™”ë©´ì— ë„ì›Œì§€ëŠ” ê²ƒì¸ì§€ ê³ ë¯¼í•´ë´ì•¼í•¨
 //				}
 //				//
-//				
+//
 //			}
-//			
-//			
+//
+//
 //		}
 //	}
 
@@ -166,7 +164,7 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
 		ARPCache_ItemDelBtn.addActionListener(new setAddressListener());
 
 		Label ARPIP_Label = new Label("IP\uC8FC\uC18C");
-		ARPIP_Label.setFont(new Font("¸¼Àº °íµñ", Font.PLAIN, 12));
+		ARPIP_Label.setFont(new Font("ë§‘ì€ ê³ ë”•", Font.PLAIN, 12));
 		ARPIP_Label.setAlignment(Label.CENTER);
 		ARPIP_Label.setBounds(7, 332, 69, 23);
 		ARP_CachePanel.add(ARPIP_Label);
@@ -200,7 +198,7 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
 		HW_Label.setAlignment(Label.CENTER);
 		HW_Label.setBounds(10, 20, 69, 23);
 		GratARP_Panel.add(HW_Label);
-		HW_Label.setFont(new Font("¸¼Àº °íµñ", Font.PLAIN, 12));
+		HW_Label.setFont(new Font("ë§‘ì€ ê³ ë”•", Font.PLAIN, 12));
 
 		GratARP_SendBtn = new JButton("\uC804\uC1A1");
 		GratARP_SendBtn.setEnabled(false);
@@ -281,13 +279,13 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
 
 		Label Mac_Label = new Label("MAC");
 		Mac_Label.setAlignment(Label.CENTER);
-		Mac_Label.setFont(new Font("¸¼Àº °íµñ", Font.PLAIN, 10));
+		Mac_Label.setFont(new Font("ë§‘ì€ ê³ ë”•", Font.PLAIN, 10));
 		Mac_Label.setBounds(3, 92, 37, 21);
 		Address_Panel.add(Mac_Label);
 
 		Label IP_Label = new Label("IP");
 		IP_Label.setAlignment(Label.CENTER);
-		IP_Label.setFont(new Font("¸¼Àº °íµñ", Font.PLAIN, 10));
+		IP_Label.setFont(new Font("ë§‘ì€ ê³ ë”•", Font.PLAIN, 10));
 		IP_Label.setBounds(3, 148, 39, 23);
 		Address_Panel.add(IP_Label);
 
@@ -295,18 +293,18 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
 		IP_Address.setBounds(56, 148, 246, 21);
 		Address_Panel.add(IP_Address);
 		IP_Address.setColumns(10);
-		
+
 		MAC_Address = new JTextField();
 		MAC_Address.setColumns(10);
 		MAC_Address.setBounds(56, 92, 246, 21);
 		Address_Panel.add(MAC_Address);
-		
+
 		String[] nic = new String[((NILayer) m_LayerMgr.GetLayer("Ni")).m_pAdapterList.size()];
-	      for (int i = 0; i < ((NILayer) m_LayerMgr.GetLayer("Ni")).m_pAdapterList.size(); i++) {
-	         nic[i] = ((NILayer) m_LayerMgr.GetLayer("Ni")).m_pAdapterList.get(i).getDescription()
-	               + ((NILayer) m_LayerMgr.GetLayer("Ni")).m_pAdapterList.get(i).getName();
-	      }
-	    addr_comboBox = new JComboBox(nic);
+		for (int i = 0; i < ((NILayer) m_LayerMgr.GetLayer("Ni")).m_pAdapterList.size(); i++) {
+			nic[i] = ((NILayer) m_LayerMgr.GetLayer("Ni")).m_pAdapterList.get(i).getDescription()
+					+ ((NILayer) m_LayerMgr.GetLayer("Ni")).m_pAdapterList.get(i).getName();
+		}
+		addr_comboBox = new JComboBox(nic);
 		addr_comboBox.setBounds(56, 37, 246, 23);
 		Address_Panel.add(addr_comboBox);
 	}
@@ -315,62 +313,62 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (e.getSource() == addr_comboBox) {
-	            byte[] mac = new byte[0];
-	            try {
-	               mac = nilayer.m_pAdapterList.get(addr_comboBox.getSelectedIndex()).getHardwareAddress();
-	            } catch (IOException e1) {
-	               e1.printStackTrace();
-	            }
-	            String macAddr = "";
-	            for (int i = 0; i < mac.length; i++)
-	               macAddr += String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : "");
-	            MAC_Address.setText(macAddr);
-	         }
-			
-			//send¹öÆ° ´©¸£¸é ipÁÖ¼Ò macÁÖ¼Ò incomplete¶ç¿ì±â, arplayer¿¡¼­ ¾ò¾î¿À±â(threadÈ®ÀÎ)
-			
+				byte[] mac = new byte[0];
+				try {
+					mac = nilayer.m_pAdapterList.get(addr_comboBox.getSelectedIndex()).getHardwareAddress();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+				String macAddr = "";
+				for (int i = 0; i < mac.length; i++)
+					macAddr += String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : "");
+				MAC_Address.setText(macAddr);
+			}
+
+			//sendë²„íŠ¼ ëˆ„ë¥´ë©´ ipì£¼ì†Œ macì£¼ì†Œ incompleteë„ìš°ê¸°, arplayerì—ì„œ ì–»ì–´ì˜¤ê¸°(threadí™•ì¸)
+
 			if(e.getSource() == ARPCache_IPSendBtn) {
 				iplayer.Send(ARPCache_IPAddress.getText());
 				byte[] no = null;
 				tcplayer.Send(no);
 				arplayer.setMacAddress(MAC_Address.getText().getBytes());
-//				for(int i = 0; i < arplayer.cacheTable.size(); i++) {
-//					String ipaddr = new String(arplayer.ipaddr_byte(arplayer.cacheTable.get(i).getIpAddr()));
-//					String macaddr = new String(arplayer.macaddr_byte(arplayer.cacheTable.get(i).getMacAddr()));
-//					int status = arplayer.cacheTable.get(i).getStatus();
-//					ARP_CacheList.addItem(ipaddr+"   "+ macaddr + "  " +  status);
-//				}
+//            for(int i = 0; i < arplayer.cacheTable.size(); i++) {
+//               String ipaddr = new String(arplayer.ipaddr_byte(arplayer.cacheTable.get(i).getIpAddr()));
+//               String macaddr = new String(arplayer.macaddr_byte(arplayer.cacheTable.get(i).getMacAddr()));
+//               int status = arplayer.cacheTable.get(i).getStatus();
+//               ARP_CacheList.addItem(ipaddr+"   "+ macaddr + "  " +  status);
+//            }
 			}
 			if(e.getSource() == ARPCache_ItemDelBtn) {
-			//¾ÆÀÌÅÛ »èÁ¦ (¸ÆÁÖ¼Ò ÀüÃ¼ »èÁ¦)
+				//ì•„ì´í…œ ì‚­ì œ (ë§¥ì£¼ì†Œ ì „ì²´ ì‚­ì œ)
 			}
 			if(e.getSource() == ARPCache_AllDelBtn) {
-			//Ä³½ÃÅ×ÀÌºí ÀüÃ¼ »èÁ¦
+				//ìºì‹œí…Œì´ë¸” ì „ì²´ ì‚­ì œ
 			}
 			if(e.getSource() == ProxyARP_AddBtn) {
 				ProxyARP_Device.getText();
 				ProxyARP_IPAddress.getText();
 				ProxyARP_MacAddress.getText();
-				//¼³Á¤½ÃÄÑÁà¾ßÇÔ
+				//ì„¤ì •ì‹œì¼œì¤˜ì•¼í•¨
 			}
 			if(e.getSource() == ProxyARP_DelBtn) {
-				//Å×ÀÌºí»èÁ¦(ARP¿¡¼­)
+				//í…Œì´ë¸”ì‚­ì œ(ARPì—ì„œ)
 			}
 			if(e.getSource() == GratARP_SendBtn) {
-				//change_mac(ARP¿¡¼­ ÇÑ °Í ºÒ·¯¿Í¾ßÇÔ)
+				//change_mac(ARPì—ì„œ í•œ ê²ƒ ë¶ˆëŸ¬ì™€ì•¼í•¨)
 			}
-			
-			
-				
-			//iplayer·Î º¸³¾¶§ ip¸¸ º¸³»¸é µÈ´Ù.(string·Î)
-			//add¹öÆ° ´©¸£¸é proxy arp entry¿¡ device ipÁÖ¼Ò ethernetÁÖ¼Ò ¶ç¿ì±â(threadÈ®ÀÎ)
-			//iplayer·Î º¸³¿(string·Î)
-			//delete´Â ´Ù »èÁ¦ÇÏ°Ô 
+
+
+
+			//iplayerë¡œ ë³´ë‚¼ë•Œ ipë§Œ ë³´ë‚´ë©´ ëœë‹¤.(stringë¡œ)
+			//addë²„íŠ¼ ëˆ„ë¥´ë©´ proxy arp entryì— device ipì£¼ì†Œ ethernetì£¼ì†Œ ë„ìš°ê¸°(threadí™•ì¸)
+			//iplayerë¡œ ë³´ëƒ„(stringë¡œ)
+			//deleteëŠ” ë‹¤ ì‚­ì œí•˜ê²Œ
 
 		}
 	}
 	public boolean Receive(byte[] input) {
-		//´ë´äÀÌ ¿À¸é ip complete·Î µ¤¾î¾º¿ò arplayer¿¡¼­ ¾ò¾î¿À±â(thread È®ÀÎ)
+		//ëŒ€ë‹µì´ ì˜¤ë©´ ip completeë¡œ ë®ì–´ì”Œì›€ arplayerì—ì„œ ì–»ì–´ì˜¤ê¸°(thread í™•ì¸)
 		return true;
 	}
 	@Override
