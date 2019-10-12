@@ -1,9 +1,5 @@
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.nio.ByteBuffer;
+package ARP;
+
 import java.util.ArrayList;
 
 public class EthernetLayer implements BaseLayer {
