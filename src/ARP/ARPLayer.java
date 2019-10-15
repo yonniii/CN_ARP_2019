@@ -154,6 +154,7 @@ public class ARPLayer implements BaseLayer {
 		System.arraycopy(input_ip, 0, target_ip, 0, ARP_LEN_IP_VALUE);
 
 		for(int i=0; i<ProxyTable.size();i++) {
+			//제대로 인식하는지 확인 필요
 			if( ProxyTable.get(i).ipAddr == target_ip) {
 				return true;
 			}
@@ -455,14 +456,12 @@ public class ARPLayer implements BaseLayer {
 	class ProxyData {
 		private _ARP_MAC_ADDR macAddr;
 		private _ARP_IP_ADDR ipAddr;
-		private int status;
 		private String deviceName;
 
 
-		public ProxyData(_ARP_MAC_ADDR newMac, _ARP_IP_ADDR newIp, int newStatus, String newName) {
+		public ProxyData(_ARP_MAC_ADDR newMac, _ARP_IP_ADDR newIp, String newName) {
 			this.macAddr = newMac;
 			this.ipAddr = newIp;
-			this.status = newStatus;
 			this.deviceName=newName;
 		}
 
@@ -474,9 +473,6 @@ public class ARPLayer implements BaseLayer {
 			this.ipAddr = givenIp;
 		}
 
-		public void setStatus(int givenStatus) {
-			this.status = givenStatus;
-		}
 		public void setDeviceName(String givenName) {
 			this.deviceName = givenName;
 		}
@@ -489,9 +485,6 @@ public class ARPLayer implements BaseLayer {
 			return this.ipAddr;
 		}
 
-		public int getStatus() {
-			return this.status;
-		}
 		public String getName() {
 			return this.deviceName;
 		}
