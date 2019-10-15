@@ -80,6 +80,7 @@ public class ARPLayer implements BaseLayer {
 
 	//테이블
 	ArrayList<CacheData> cacheTable = new ArrayList<>();
+	ArrayList<ProxyData> ProxyTable = new ArrayList<>();
 
 	//자신의 MAC 주소
 	_ARP_MAC_ADDR myMacAddr = new _ARP_MAC_ADDR();
@@ -145,7 +146,7 @@ public class ARPLayer implements BaseLayer {
 
 		return true;
 	}
-
+	
 	public boolean Receive(byte[] input) {
 		//opCode가 1인 경우와 opCode가 2인 경우를 구분
 
