@@ -80,6 +80,7 @@ public class ARPLayer implements BaseLayer {
 
 	//테이블
 	ArrayList<CacheData> cacheTable = new ArrayList<>();
+	ArrayList<ProxyData> proxyTable = new ArrayList<>();
 
 	//자신의 MAC 주소
 	_ARP_MAC_ADDR myMacAddr = new _ARP_MAC_ADDR();
@@ -111,7 +112,7 @@ public class ARPLayer implements BaseLayer {
 			ARP_Header.ip_recvAddr.addr[i] = (byte) 0x00;
 		}
 	}
-	
+
 	// 받아온 byte[]의 mac주소를 내 myMacAddr에 저장하는 함수
 	public void setMacAddress(byte[] input) {
 		System.arraycopy(input, 0, myMacAddr.addr, 0, ARP_LEN_MAC_VALUE);
@@ -126,7 +127,7 @@ public class ARPLayer implements BaseLayer {
 		//arraycopy로 dst랑 src ip주소 추출
 		System.arraycopy(input, 0, dstIpAddr.addr, 0, ARP_LEN_IP_VALUE);
 		System.arraycopy(input, 4, srcIpAddr.addr, 0, ARP_LEN_IP_VALUE);
-	
+
 		//send용 ARPHeader세팅
 		sendARPHeader(dstIpAddr, srcIpAddr);
 
@@ -144,6 +145,22 @@ public class ARPLayer implements BaseLayer {
 		ResetHeader();
 
 		return true;
+	}
+
+	//들어오는 ip를 가지고 ProxyTable에 존재하는지 확인
+	//있으면 true, 없으면 false
+	public boolean isProxy(byte[] input_ip) { //이더넷과 연결
+		_ARP_IP_ADDR target_ip = new _ARP_IP_ADDR();
+		System.arraycopy(input_ip, 0, target_ip, 0, ARP_LEN_IP_VALUE);
+
+		for(int i=0; i<proxyTable.size();i++) {
+			//제대로 인식하는지 확인 필요
+			if( proxyTable.get(i).ipAddr == target_ip) {
+				return true;
+			}
+		}
+		return false;
+
 	}
 
 	public boolean Receive(byte[] input) {
@@ -279,6 +296,33 @@ public class ARPLayer implements BaseLayer {
 			cacheTable.add(givenData);
 	}
 
+	//프록시 테이블에 데이터를 추가하는 경우
+	public void addProxy(byte[] givenIp, byte[] givenMac, String givenName) {
+		//나중에 돌면서 체크 -> 있을 경우 오류로 할지 결정
+		_ARP_IP_ADDR ip = new _ARP_IP_ADDR();
+		_ARP_MAC_ADDR mac = new _ARP_MAC_ADDR();
+		System.arraycopy(givenIp, 0, ip, 0, ARP_LEN_IP_VALUE);
+		System.arraycopy(givenIp, 0, mac, 0, ARP_LEN_MAC_VALUE);
+
+		proxyTable.add(new ProxyData(mac, ip, givenName));
+
+	}
+
+
+	//브로드캐스트로 받은 데이터가 우리 데이터가 아니더라도 ip랑 mac주소는 따오게 됨
+	//캐쉬 테이블에 ethernet으로부터 받아온 ip랑 mac 주소를 cache table에 추가
+	public void ethernetAddCache(byte[] mac, byte[] ip) {
+		_ARP_MAC_ADDR addMac = new _ARP_MAC_ADDR();
+		_ARP_IP_ADDR addIp = new _ARP_IP_ADDR();
+
+		System.arraycopy(mac, 0, addMac.addr, 0, mac.length);
+		System.arraycopy(ip, 0, addIp.addr, 0, ip.length);
+
+		//cachetable에 추가
+		addCache(new CacheData(addMac, addIp, COMPLETE));
+	}
+
+
 	//캐쉬 테이블의 데이터를 complete로 변경
 	public void changeCache(CacheData givenData) {
 		//Ip addr을 기준으로 찾아서 추가
@@ -293,12 +337,31 @@ public class ARPLayer implements BaseLayer {
 				return;
 			}
 		}
+	}
 
-		if(check != 1) {
-			//테이블에 없는 경우
-			//오류 (어떻게 오류를 표시할지 생각)
-		}
+	//가장 마지막으로 들어온 값 삭제
+	public void deleteCache() {
+		cacheTable.remove(cacheTable.size()-1);
+	}
 
+	//전체 cacheTable 삭제
+	public void deleteAllCache() {
+		cacheTable.clear();
+	}
+
+	//가장 마지막으로 들어온 값 삭제
+	public void deleteProxy() {
+		proxyTable.remove(proxyTable.size()-1);
+	}
+
+	//Application용 mac주소
+	public byte[] macaddr_byte(_ARP_MAC_ADDR addr) {
+		return addr.addr;
+	}
+
+	//Application용 IP주소
+	public byte[] ipaddr_byte(_ARP_IP_ADDR addr) {
+		return addr.addr;
 	}
 
 	byte[] intToByte2(int value) { //정수형을 byte 2배열로 바꿈.
@@ -407,11 +470,42 @@ public class ARPLayer implements BaseLayer {
 			return this.status;
 		}
 	}
-	public byte[] macaddr_byte(_ARP_MAC_ADDR addr) {
-		return addr.addr;
-	}
-	public byte[] ipaddr_byte(_ARP_IP_ADDR addr) {
-		return addr.addr;
+
+	class ProxyData {
+		private _ARP_MAC_ADDR macAddr;
+		private _ARP_IP_ADDR ipAddr;
+		private String deviceName;
+
+
+		public ProxyData(_ARP_MAC_ADDR newMac, _ARP_IP_ADDR newIp, String newName) {
+			this.macAddr = newMac;
+			this.ipAddr = newIp;
+			this.deviceName=newName;
+		}
+
+		public void setMacAddr(_ARP_MAC_ADDR givenMac) {
+			this.macAddr = givenMac;
+		}
+
+		public void setIpAddr(_ARP_IP_ADDR givenIp) {
+			this.ipAddr = givenIp;
+		}
+
+		public void setDeviceName(String givenName) {
+			this.deviceName = givenName;
+		}
+
+		public _ARP_MAC_ADDR getMacAddr() {
+			return this.macAddr;
+		}
+
+		public _ARP_IP_ADDR getIpAddr() {
+			return this.ipAddr;
+		}
+
+		public String getName() {
+			return this.deviceName;
+		}
 	}
 
 }
