@@ -435,5 +435,50 @@ public class ARPLayer implements BaseLayer {
 			return this.status;
 		}
 	}
+	
+	 class ProxyData {
+         private _ARP_MAC_ADDR macAddr;
+       private _ARP_IP_ADDR ipAddr;
+       private int status;
+       private String deviceName;
+       
+
+       public ProxyData(_ARP_MAC_ADDR newMac, _ARP_IP_ADDR newIp, int newStatus, String newName) {
+          this.macAddr = newMac;
+          this.ipAddr = newIp;
+          this.status = newStatus;
+          this.deviceName=newName;
+       }
+
+       public void setMacAddr(_ARP_MAC_ADDR givenMac) {
+          this.macAddr = givenMac;
+       }
+
+       public void setIpAddr(_ARP_IP_ADDR givenIp) {
+          this.ipAddr = givenIp;
+       }
+
+       public void setStatus(int givenStatus) {
+          this.status = givenStatus;
+       }
+       public void setDeviceName(String givenName) {
+             this.deviceName = givenName;
+      }
+
+       public _ARP_MAC_ADDR getMacAddr() {
+          return this.macAddr;
+       }
+
+       public _ARP_IP_ADDR getIpAddr() {
+          return this.ipAddr;
+       }
+
+       public int getStatus() {
+          return this.status;
+       }
+       public String getName() {
+             return this.deviceName;
+      }
+ }
 
 }
