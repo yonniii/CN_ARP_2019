@@ -80,7 +80,7 @@ public class ARPLayer implements BaseLayer {
 
 	//테이블
 	ArrayList<CacheData> cacheTable = new ArrayList<>();
-	ArrayList<ProxyData> ProxyTable = new ArrayList<>();
+	ArrayList<ProxyData> proxyTable = new ArrayList<>();
 
 	//자신의 MAC 주소
 	_ARP_MAC_ADDR myMacAddr = new _ARP_MAC_ADDR();
@@ -153,9 +153,9 @@ public class ARPLayer implements BaseLayer {
 		_ARP_IP_ADDR target_ip = new _ARP_IP_ADDR();
 		System.arraycopy(input_ip, 0, target_ip, 0, ARP_LEN_IP_VALUE);
 
-		for(int i=0; i<ProxyTable.size();i++) {
+		for(int i=0; i<proxyTable.size();i++) {
 			//제대로 인식하는지 확인 필요
-			if( ProxyTable.get(i).ipAddr == target_ip) {
+			if( proxyTable.get(i).ipAddr == target_ip) {
 				return true;
 			}
 		}
