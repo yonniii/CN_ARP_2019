@@ -335,6 +335,11 @@ public class ARPLayer implements BaseLayer {
 	public void deleteAllCache() {
 		cacheTable.clear();
 	}
+	
+	//가장 마지막으로 들어온 값 삭제
+	public void deleteProxy() {
+		proxyTable.remove(proxyTable.size()-1);
+	}
 
 	//Application용 mac주소
 	public byte[] macaddr_byte(_ARP_MAC_ADDR addr) {
