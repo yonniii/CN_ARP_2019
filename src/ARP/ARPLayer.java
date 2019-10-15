@@ -111,7 +111,7 @@ public class ARPLayer implements BaseLayer {
 			ARP_Header.ip_recvAddr.addr[i] = (byte) 0x00;
 		}
 	}
-	
+
 	// 받아온 byte[]의 mac주소를 내 myMacAddr에 저장하는 함수
 	public void setMacAddress(byte[] input) {
 		System.arraycopy(input, 0, myMacAddr.addr, 0, ARP_LEN_MAC_VALUE);
@@ -126,7 +126,7 @@ public class ARPLayer implements BaseLayer {
 		//arraycopy로 dst랑 src ip주소 추출
 		System.arraycopy(input, 0, dstIpAddr.addr, 0, ARP_LEN_IP_VALUE);
 		System.arraycopy(input, 4, srcIpAddr.addr, 0, ARP_LEN_IP_VALUE);
-	
+
 		//send용 ARPHeader세팅
 		sendARPHeader(dstIpAddr, srcIpAddr);
 
@@ -294,17 +294,30 @@ public class ARPLayer implements BaseLayer {
 			}
 		}
 	}
+
+	//가장 마지막으로 들어온 값 삭제
+	public void deleteCache() {
+		cacheTable.remove(cacheTable.size()-1);
+	}
 	
+	//전체 cacheTable 삭제
+	public void deleteAllCache() {
+		//removeall은 매개변수가 필요한뎀
+		for(int i=0; i<cacheTable.size();i++) {
+			cacheTable.remove(i);
+		}
+	}
+
 	//Application용 mac주소
 	public byte[] macaddr_byte(_ARP_MAC_ADDR addr) {
 		return addr.addr;
 	}
-	
+
 	//Application용 IP주소
 	public byte[] ipaddr_byte(_ARP_IP_ADDR addr) {
 		return addr.addr;
 	}
-	
+
 	byte[] intToByte2(int value) { //정수형을 byte 2배열로 바꿈.
 		byte[] temp = new byte[2];
 		temp[1] = (byte) (value >> 8);
