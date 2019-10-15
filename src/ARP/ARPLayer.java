@@ -302,10 +302,7 @@ public class ARPLayer implements BaseLayer {
 	
 	//전체 cacheTable 삭제
 	public void deleteAllCache() {
-		//removeall은 매개변수가 필요한뎀
-		for(int i=0; i<cacheTable.size();i++) {
-			cacheTable.remove(i);
-		}
+		 cacheTable.clear();
 	}
 
 	//Application용 mac주소
