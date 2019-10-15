@@ -293,12 +293,6 @@ public class ARPLayer implements BaseLayer {
 				return;
 			}
 		}
-
-		if(check != 1) {
-			//테이블에 없는 경우
-			//오류 (어떻게 오류를 표시할지 생각)
-		}
-
 	}
 	
 	//Application용 mac주소
