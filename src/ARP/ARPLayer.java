@@ -296,6 +296,19 @@ public class ARPLayer implements BaseLayer {
 			cacheTable.add(givenData);
 	}
 
+	//프록시 테이블에 데이터를 추가하는 경우
+	public void addProxy(byte[] givenIp, byte[] givenMac, String givenName) {
+		//나중에 돌면서 체크 -> 있을 경우 오류로 할지 결정
+		_ARP_IP_ADDR ip = new _ARP_IP_ADDR();
+		_ARP_MAC_ADDR mac = new _ARP_MAC_ADDR();
+		System.arraycopy(givenIp, 0, ip, 0, ARP_LEN_IP_VALUE);
+		System.arraycopy(givenIp, 0, mac, 0, ARP_LEN_MAC_VALUE);
+
+		proxyTable.add(new ProxyData(mac, ip, givenName));
+
+	}
+
+
 	//브로드캐스트로 받은 데이터가 우리 데이터가 아니더라도 ip랑 mac주소는 따오게 됨
 	//캐쉬 테이블에 ethernet으로부터 받아온 ip랑 mac 주소를 cache table에 추가
 	public void ethernetAddCache(byte[] mac, byte[] ip) {
@@ -335,7 +348,7 @@ public class ARPLayer implements BaseLayer {
 	public void deleteAllCache() {
 		cacheTable.clear();
 	}
-	
+
 	//가장 마지막으로 들어온 값 삭제
 	public void deleteProxy() {
 		proxyTable.remove(proxyTable.size()-1);
