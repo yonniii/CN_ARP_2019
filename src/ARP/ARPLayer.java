@@ -149,7 +149,7 @@ public class ARPLayer implements BaseLayer {
 
 	//들어오는 ip를 가지고 ProxyTable에 존재하는지 확인
 	//있으면 true, 없으면 false
-	public boolean isProxy(byte[] input_ip) { //이더넷과 연결
+	public boolean ethernetIsProxy(byte[] input_ip) { //이더넷과 연결
 		_ARP_IP_ADDR target_ip = new _ARP_IP_ADDR();
 		System.arraycopy(input_ip, 0, target_ip, 0, ARP_LEN_IP_VALUE);
 
