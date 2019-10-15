@@ -162,6 +162,19 @@ public class ARPLayer implements BaseLayer {
 		return false;
 
 	}
+	
+	//들어온 ip와 같은 인덱스가 존재할 경우 인덱스의 mac주소를 리턴
+	public _ARP_MAC_ADDR isProxy(_ARP_IP_ADDR recv_ip) { //이더넷과 연결
+
+		for(int i=0; i<proxyTable.size();i++) {
+			//제대로 인식하는지 확인 필요
+			if( proxyTable.get(i).ipAddr == recv_ip) {
+				return proxyTable.get(i).macAddr;
+			}
+		}
+		return null;
+
+	}
 
 	public boolean Receive(byte[] input) {
 		//opCode가 1인 경우와 opCode가 2인 경우를 구분
@@ -186,6 +199,11 @@ public class ARPLayer implements BaseLayer {
 		// 1인지 2인지 확인
 		if(opCode == ASK) {
 			// 1인 경우
+			//proxyARP인지 BASIC인지 확인 해야함 따라서 target의 ip 추출 -> isProxy검사
+			//true일 경우 반환되는 데이터 값을 가지고
+			//basic arp와 똑같이 진행
+			//fasle일 경우
+			//basic arp 그대로 진행
 
 			_ARP_MAC_ADDR recvMacAddr = null; //특정한 함수를 받아서 Mac주소를 받음 (미리 받아놓거나 함, 논의 필요)
 
