@@ -300,7 +300,17 @@ public class ARPLayer implements BaseLayer {
 		}
 
 	}
-
+	
+	//Application용 mac주소
+	public byte[] macaddr_byte(_ARP_MAC_ADDR addr) {
+		return addr.addr;
+	}
+	
+	//Application용 IP주소
+	public byte[] ipaddr_byte(_ARP_IP_ADDR addr) {
+		return addr.addr;
+	}
+	
 	byte[] intToByte2(int value) { //정수형을 byte 2배열로 바꿈.
 		byte[] temp = new byte[2];
 		temp[1] = (byte) (value >> 8);
@@ -406,12 +416,6 @@ public class ARPLayer implements BaseLayer {
 		public int getStatus() {
 			return this.status;
 		}
-	}
-	public byte[] macaddr_byte(_ARP_MAC_ADDR addr) {
-		return addr.addr;
-	}
-	public byte[] ipaddr_byte(_ARP_IP_ADDR addr) {
-		return addr.addr;
 	}
 
 }
