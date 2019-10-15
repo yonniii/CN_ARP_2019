@@ -162,7 +162,7 @@ public class ARPLayer implements BaseLayer {
 		return false;
 
 	}
-	
+
 	//들어온 ip와 같은 인덱스가 존재할 경우 인덱스의 mac주소를 리턴
 	public _ARP_MAC_ADDR isProxy(_ARP_IP_ADDR recv_ip) { //이더넷과 연결
 
@@ -200,15 +200,28 @@ public class ARPLayer implements BaseLayer {
 		if(opCode == ASK) {
 			// 1인 경우
 			//proxyARP인지 BASIC인지 확인 해야함 따라서 target의 ip 추출 -> isProxy검사
-			//true일 경우 반환되는 데이터 값을 가지고
+			//true일 경우 반환되는 데이터 값을 가지고 (그 인덱스에 대한 MAC값)
 			//basic arp와 똑같이 진행
 			//fasle일 경우
 			//basic arp 그대로 진행
-
-			_ARP_MAC_ADDR recvMacAddr = null; //특정한 함수를 받아서 Mac주소를 받음 (미리 받아놓거나 함, 논의 필요)
-
-			System.arraycopy(recvMacAddr.addr, 0, input, 18, ARP_LEN_MAC_VALUE);
-
+			
+			//proxy 검색 용 IP주소 추출
+			_ARP_IP_ADDR recvIpAddr = new _ARP_IP_ADDR();
+			System.arraycopy(input, 24, recvIpAddr, 0, ARP_LEN_IP_VALUE);
+			
+			//추출한 주소를 가지고 proxy용 recvMac을 구함 (없으면 null)
+			_ARP_MAC_ADDR proxyRecvMacAddr = isProxy(recvIpAddr);
+			
+			if(proxyRecvMacAddr != null) { //Proxy
+				//원래 target.mac의 위치에 넣어줌
+				System.arraycopy(proxyRecvMacAddr.addr, 0, input, 18, ARP_LEN_MAC_VALUE);
+			}
+			else { //basic
+				//자신의 맥 주소를 추출해서 input의 target.mac부분에 삽입
+				_ARP_MAC_ADDR recvMacAddr = new _ARP_MAC_ADDR();
+				System.arraycopy(recvMacAddr.addr, 0, input, 18, ARP_LEN_MAC_VALUE);
+			}
+			
 			//sender Mac, Ip
 			_ARP_MAC_ADDR senderMac = new _ARP_MAC_ADDR();
 			_ARP_IP_ADDR senderIp = new _ARP_IP_ADDR();
