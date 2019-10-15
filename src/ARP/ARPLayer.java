@@ -146,7 +146,22 @@ public class ARPLayer implements BaseLayer {
 
 		return true;
 	}
-	
+
+	//들어오는 ip를 가지고 ProxyTable에 존재하는지 확인
+	//있으면 true, 없으면 false
+	public boolean isProxy(byte[] input_ip) { //이더넷과 연결
+		_ARP_IP_ADDR target_ip = new _ARP_IP_ADDR();
+		System.arraycopy(input_ip, 0, target_ip, 0, ARP_LEN_IP_VALUE);
+
+		for(int i=0; i<ProxyTable.size();i++) {
+			if( ProxyTable.get(i).ipAddr == target_ip) {
+				return true;
+			}
+		}
+		return false;
+
+	}
+
 	public boolean Receive(byte[] input) {
 		//opCode가 1인 경우와 opCode가 2인 경우를 구분
 
@@ -279,20 +294,20 @@ public class ARPLayer implements BaseLayer {
 		if(check != 1) //테이블에 매개변수의 ip가 없는 경우
 			cacheTable.add(givenData);
 	}
-	
+
 	//브로드캐스트로 받은 데이터가 우리 데이터가 아니더라도 ip랑 mac주소는 따오게 됨
 	//캐쉬 테이블에 ethernet으로부터 받아온 ip랑 mac 주소를 cache table에 추가
 	public void ethernetAddCache(byte[] mac, byte[] ip) {
 		_ARP_MAC_ADDR addMac = new _ARP_MAC_ADDR();
 		_ARP_IP_ADDR addIp = new _ARP_IP_ADDR();
-		
+
 		System.arraycopy(mac, 0, addMac.addr, 0, mac.length);
 		System.arraycopy(ip, 0, addIp.addr, 0, ip.length);
-		
+
 		//cachetable에 추가
 		addCache(new CacheData(addMac, addIp, COMPLETE));
 	}
-	
+
 
 	//캐쉬 테이블의 데이터를 complete로 변경
 	public void changeCache(CacheData givenData) {
@@ -314,7 +329,7 @@ public class ARPLayer implements BaseLayer {
 	public void deleteCache() {
 		cacheTable.remove(cacheTable.size()-1);
 	}
-	
+
 	//전체 cacheTable 삭제
 	public void deleteAllCache() {
 		cacheTable.clear();
@@ -436,50 +451,50 @@ public class ARPLayer implements BaseLayer {
 			return this.status;
 		}
 	}
-	
-	 class ProxyData {
-         private _ARP_MAC_ADDR macAddr;
-       private _ARP_IP_ADDR ipAddr;
-       private int status;
-       private String deviceName;
-       
 
-       public ProxyData(_ARP_MAC_ADDR newMac, _ARP_IP_ADDR newIp, int newStatus, String newName) {
-          this.macAddr = newMac;
-          this.ipAddr = newIp;
-          this.status = newStatus;
-          this.deviceName=newName;
-       }
+	class ProxyData {
+		private _ARP_MAC_ADDR macAddr;
+		private _ARP_IP_ADDR ipAddr;
+		private int status;
+		private String deviceName;
 
-       public void setMacAddr(_ARP_MAC_ADDR givenMac) {
-          this.macAddr = givenMac;
-       }
 
-       public void setIpAddr(_ARP_IP_ADDR givenIp) {
-          this.ipAddr = givenIp;
-       }
+		public ProxyData(_ARP_MAC_ADDR newMac, _ARP_IP_ADDR newIp, int newStatus, String newName) {
+			this.macAddr = newMac;
+			this.ipAddr = newIp;
+			this.status = newStatus;
+			this.deviceName=newName;
+		}
 
-       public void setStatus(int givenStatus) {
-          this.status = givenStatus;
-       }
-       public void setDeviceName(String givenName) {
-             this.deviceName = givenName;
-      }
+		public void setMacAddr(_ARP_MAC_ADDR givenMac) {
+			this.macAddr = givenMac;
+		}
 
-       public _ARP_MAC_ADDR getMacAddr() {
-          return this.macAddr;
-       }
+		public void setIpAddr(_ARP_IP_ADDR givenIp) {
+			this.ipAddr = givenIp;
+		}
 
-       public _ARP_IP_ADDR getIpAddr() {
-          return this.ipAddr;
-       }
+		public void setStatus(int givenStatus) {
+			this.status = givenStatus;
+		}
+		public void setDeviceName(String givenName) {
+			this.deviceName = givenName;
+		}
 
-       public int getStatus() {
-          return this.status;
-       }
-       public String getName() {
-             return this.deviceName;
-      }
- }
+		public _ARP_MAC_ADDR getMacAddr() {
+			return this.macAddr;
+		}
+
+		public _ARP_IP_ADDR getIpAddr() {
+			return this.ipAddr;
+		}
+
+		public int getStatus() {
+			return this.status;
+		}
+		public String getName() {
+			return this.deviceName;
+		}
+	}
 
 }
