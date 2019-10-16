@@ -84,6 +84,8 @@ public class ARPLayer implements BaseLayer {
 
 	//자신의 MAC 주소
 	_ARP_MAC_ADDR myMacAddr = new _ARP_MAC_ADDR();
+	//자신의 IP 주소
+	_ARP_IP_ADDR myIpAddr = new _ARP_IP_ADDR();
 
 
 	//생성자
@@ -116,6 +118,11 @@ public class ARPLayer implements BaseLayer {
 	// 받아온 byte[]의 mac주소를 내 myMacAddr에 저장하는 함수
 	public void setMacAddress(byte[] input) {
 		System.arraycopy(input, 0, myMacAddr.addr, 0, ARP_LEN_MAC_VALUE);
+	}
+
+	// 받이온 bytep[]의 ip주소를  내 myIpAddr에 저장하는 함수
+	public void setIpAddress(byte[] input) {
+		System.arraycopy(input, 0, myIpAddr.addr, 0, ARP_LEN_IP_VALUE);
 	}
 
 	public boolean Send(byte[] input, int length) {
@@ -191,24 +198,44 @@ public class ARPLayer implements BaseLayer {
 			//basic arp와 똑같이 진행
 			//fasle일 경우
 			//basic arp 그대로 진행
-			
-			//proxy 검색 용 IP주소 추출
+
+			//target ip 주소 추출 
 			_ARP_IP_ADDR recvIpAddr = new _ARP_IP_ADDR();
 			System.arraycopy(input, 24, recvIpAddr, 0, ARP_LEN_IP_VALUE);
-			
-			//추출한 주소를 가지고 proxy용 recvMac을 구함 (없으면 null)
-			_ARP_MAC_ADDR proxyRecvMacAddr = isProxy(recvIpAddr);
-			
-			if(proxyRecvMacAddr != null) { //Proxy
-				//원래 target.mac의 위치에 넣어줌
-				System.arraycopy(proxyRecvMacAddr.addr, 0, input, 18, ARP_LEN_MAC_VALUE);
-			}
-			else { //basic
+
+			//자신의 ip 주소와 같은지 확인
+			if(recvIpAddr == myIpAddr) {
+				//같다면 basic arp
 				//자신의 맥 주소를 추출해서 input의 target.mac부분에 삽입
-				_ARP_MAC_ADDR recvMacAddr = new _ARP_MAC_ADDR();
-				System.arraycopy(recvMacAddr.addr, 0, input, 18, ARP_LEN_MAC_VALUE);
+				System.arraycopy(myMacAddr.addr, 0, input, 18, ARP_LEN_MAC_VALUE);
 			}
-			
+			else {
+				//다를 경우 1. proxy, 2. 그냥 잘못 온 경우
+
+				//추출한 주소를 가지고 proxy용 recvMac을 구함 (없으면 null)
+				_ARP_MAC_ADDR proxyRecvMacAddr = isProxy(recvIpAddr);
+
+				if(proxyRecvMacAddr != null) { //Proxy
+					//원래 target.mac의 위치에 넣어줌
+					System.arraycopy(proxyRecvMacAddr.addr, 0, input, 18, ARP_LEN_MAC_VALUE);
+				}
+				else {
+					//아닐 경우 sender의 정보만 빼서 저장하고 버림
+
+					//sender Mac, Ip
+					_ARP_MAC_ADDR senderMac = new _ARP_MAC_ADDR();
+					_ARP_IP_ADDR senderIp = new _ARP_IP_ADDR();
+
+					System.arraycopy(input, 8, senderMac.addr, 0, ARP_LEN_MAC_VALUE);
+					System.arraycopy(input, 14, senderIp.addr, 0, ARP_LEN_IP_VALUE);
+
+					//sender의 정보는 다 있기 때문에 테이블에 추가
+					addCache(new CacheData(senderMac, senderIp, COMPLETE));
+
+					return false;
+				}
+			}
+
 			//sender Mac, Ip
 			_ARP_MAC_ADDR senderMac = new _ARP_MAC_ADDR();
 			_ARP_IP_ADDR senderIp = new _ARP_IP_ADDR();
