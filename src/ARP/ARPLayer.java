@@ -138,8 +138,8 @@ public class ARPLayer implements BaseLayer {
 		//캐쉬 테이블에 올리는 부분
 		addCache(new CacheData(ARP_Header.mac_recvAddr, ARP_Header.ip_recvAddr, INCOMPLETE));
 
-		//Ethernet.send를 호출하는 부분 구현 해야함
-		//((EthernetLayer)this.GetUnderLayer()).Send(헤더);
+		//Ethernet.send를 호출하는 부분
+		((EthernetLayer)this.GetUnderLayer()).Send(sendData, sendData.length);
 
 		//보내고 나면 헤더를 새로 초기화
 		ResetHeader();
