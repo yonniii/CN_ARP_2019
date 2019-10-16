@@ -324,21 +324,6 @@ public class ARPLayer implements BaseLayer {
 
 	}
 
-
-	//브로드캐스트로 받은 데이터가 우리 데이터가 아니더라도 ip랑 mac주소는 따오게 됨
-	//캐쉬 테이블에 ethernet으로부터 받아온 ip랑 mac 주소를 cache table에 추가
-	public void ethernetAddCache(byte[] mac, byte[] ip) {
-		_ARP_MAC_ADDR addMac = new _ARP_MAC_ADDR();
-		_ARP_IP_ADDR addIp = new _ARP_IP_ADDR();
-
-		System.arraycopy(mac, 0, addMac.addr, 0, mac.length);
-		System.arraycopy(ip, 0, addIp.addr, 0, ip.length);
-
-		//cachetable에 추가
-		addCache(new CacheData(addMac, addIp, COMPLETE));
-	}
-
-
 	//캐쉬 테이블의 데이터를 complete로 변경
 	public void changeCache(CacheData givenData) {
 		//Ip addr을 기준으로 찾아서 추가
