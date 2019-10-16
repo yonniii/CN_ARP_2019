@@ -183,6 +183,9 @@ public class ARPLayer implements BaseLayer {
 		// 1인지 2인지 확인
 		if(opCode == ASK) {
 			// 1인 경우
+			//먼저 target의 ip주소가 자신의 ip주소와 같은지 확인
+			//같을 경우 basic 진행, 다를 경우 proxy인 경우 확인 
+			//proxy도 아닐 경우 sender의 정보만 추출하여 cache table에 추가
 			//proxyARP인지 BASIC인지 확인 해야함 따라서 target의 ip 추출 -> isProxy검사
 			//true일 경우 반환되는 데이터 값을 가지고 (그 인덱스에 대한 MAC값)
 			//basic arp와 똑같이 진행
