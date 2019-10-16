@@ -84,6 +84,8 @@ public class ARPLayer implements BaseLayer {
 
 	//자신의 MAC 주소
 	_ARP_MAC_ADDR myMacAddr = new _ARP_MAC_ADDR();
+	//자신의 IP 주소
+	_ARP_IP_ADDR myIpAddr = new _ARP_IP_ADDR();
 
 
 	//생성자
@@ -118,6 +120,11 @@ public class ARPLayer implements BaseLayer {
 		System.arraycopy(input, 0, myMacAddr.addr, 0, ARP_LEN_MAC_VALUE);
 	}
 
+	// 받이온 bytep[]의 ip주소를  내 myIpAddr에 저장하는 함수
+	public void setIpAddress(byte[] input) {
+		System.arraycopy(input, 0, myIpAddr.addr, 0, ARP_LEN_IP_VALUE);
+	}
+
 	public boolean Send(byte[] input, int length) {
 		//들어온 input(dstIp, srcIP)를 분리하여 IP주소를 얻어냄 
 		//앞의 4바이트는 dst, 뒤의 4바이트는 src
@@ -138,8 +145,8 @@ public class ARPLayer implements BaseLayer {
 		//캐쉬 테이블에 올리는 부분
 		addCache(new CacheData(ARP_Header.mac_recvAddr, ARP_Header.ip_recvAddr, INCOMPLETE));
 
-		//Ethernet.send를 호출하는 부분 구현 해야함
-		//((EthernetLayer)this.GetUnderLayer()).Send(헤더);
+		//Ethernet.send를 호출하는 부분
+		((EthernetLayer)this.GetUnderLayer()).Send(sendData, sendData.length);
 
 		//보내고 나면 헤더를 새로 초기화
 		ResetHeader();
@@ -147,19 +154,16 @@ public class ARPLayer implements BaseLayer {
 		return true;
 	}
 
-	//들어오는 ip를 가지고 ProxyTable에 존재하는지 확인
-	//있으면 true, 없으면 false
-	public boolean isProxy(byte[] input_ip) { //이더넷과 연결
-		_ARP_IP_ADDR target_ip = new _ARP_IP_ADDR();
-		System.arraycopy(input_ip, 0, target_ip, 0, ARP_LEN_IP_VALUE);
+	//들어온 ip와 같은 인덱스가 존재할 경우 인덱스의 mac주소를 리턴
+	public _ARP_MAC_ADDR isProxy(_ARP_IP_ADDR recv_ip) { //이더넷과 연결
 
 		for(int i=0; i<proxyTable.size();i++) {
 			//제대로 인식하는지 확인 필요
-			if( proxyTable.get(i).ipAddr == target_ip) {
-				return true;
+			if( proxyTable.get(i).ipAddr == recv_ip) {
+				return proxyTable.get(i).macAddr;
 			}
 		}
-		return false;
+		return null;
 
 	}
 
@@ -186,10 +190,51 @@ public class ARPLayer implements BaseLayer {
 		// 1인지 2인지 확인
 		if(opCode == ASK) {
 			// 1인 경우
+			//먼저 target의 ip주소가 자신의 ip주소와 같은지 확인
+			//같을 경우 basic 진행, 다를 경우 proxy인 경우 확인 
+			//proxy도 아닐 경우 sender의 정보만 추출하여 cache table에 추가
+			//proxyARP인지 BASIC인지 확인 해야함 따라서 target의 ip 추출 -> isProxy검사
+			//true일 경우 반환되는 데이터 값을 가지고 (그 인덱스에 대한 MAC값)
+			//basic arp와 똑같이 진행
+			//fasle일 경우
+			//basic arp 그대로 진행
 
-			_ARP_MAC_ADDR recvMacAddr = null; //특정한 함수를 받아서 Mac주소를 받음 (미리 받아놓거나 함, 논의 필요)
+			//target ip 주소 추출 
+			_ARP_IP_ADDR recvIpAddr = new _ARP_IP_ADDR();
+			System.arraycopy(input, 24, recvIpAddr, 0, ARP_LEN_IP_VALUE);
 
-			System.arraycopy(recvMacAddr.addr, 0, input, 18, ARP_LEN_MAC_VALUE);
+			//자신의 ip 주소와 같은지 확인
+			if(recvIpAddr == myIpAddr) {
+				//같다면 basic arp
+				//자신의 맥 주소를 추출해서 input의 target.mac부분에 삽입
+				System.arraycopy(myMacAddr.addr, 0, input, 18, ARP_LEN_MAC_VALUE);
+			}
+			else {
+				//다를 경우 1. proxy, 2. 그냥 잘못 온 경우
+
+				//추출한 주소를 가지고 proxy용 recvMac을 구함 (없으면 null)
+				_ARP_MAC_ADDR proxyRecvMacAddr = isProxy(recvIpAddr);
+
+				if(proxyRecvMacAddr != null) { //Proxy
+					//원래 target.mac의 위치에 넣어줌
+					System.arraycopy(proxyRecvMacAddr.addr, 0, input, 18, ARP_LEN_MAC_VALUE);
+				}
+				else {
+					//아닐 경우 sender의 정보만 빼서 저장하고 버림
+
+					//sender Mac, Ip
+					_ARP_MAC_ADDR senderMac = new _ARP_MAC_ADDR();
+					_ARP_IP_ADDR senderIp = new _ARP_IP_ADDR();
+
+					System.arraycopy(input, 8, senderMac.addr, 0, ARP_LEN_MAC_VALUE);
+					System.arraycopy(input, 14, senderIp.addr, 0, ARP_LEN_IP_VALUE);
+
+					//sender의 정보는 다 있기 때문에 테이블에 추가
+					addCache(new CacheData(senderMac, senderIp, COMPLETE));
+
+					return false;
+				}
+			}
 
 			//sender Mac, Ip
 			_ARP_MAC_ADDR senderMac = new _ARP_MAC_ADDR();
@@ -214,6 +259,7 @@ public class ARPLayer implements BaseLayer {
 			byte[] sendData = addHeader(ARP_Header, realInput);
 
 			//Ethernet send로 헤더를 붙인 데이터 전송을 구현해야함
+			((EthernetLayer)this.GetUnderLayer()).Send(sendData, sendData.length);
 
 			//보내고 나면 헤더를 초기화
 			ResetHeader();
@@ -307,21 +353,6 @@ public class ARPLayer implements BaseLayer {
 		proxyTable.add(new ProxyData(mac, ip, givenName));
 
 	}
-
-
-	//브로드캐스트로 받은 데이터가 우리 데이터가 아니더라도 ip랑 mac주소는 따오게 됨
-	//캐쉬 테이블에 ethernet으로부터 받아온 ip랑 mac 주소를 cache table에 추가
-	public void ethernetAddCache(byte[] mac, byte[] ip) {
-		_ARP_MAC_ADDR addMac = new _ARP_MAC_ADDR();
-		_ARP_IP_ADDR addIp = new _ARP_IP_ADDR();
-
-		System.arraycopy(mac, 0, addMac.addr, 0, mac.length);
-		System.arraycopy(ip, 0, addIp.addr, 0, ip.length);
-
-		//cachetable에 추가
-		addCache(new CacheData(addMac, addIp, COMPLETE));
-	}
-
 
 	//캐쉬 테이블의 데이터를 complete로 변경
 	public void changeCache(CacheData givenData) {
