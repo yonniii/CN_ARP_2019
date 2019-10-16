@@ -147,22 +147,6 @@ public class ARPLayer implements BaseLayer {
 		return true;
 	}
 
-	//들어오는 ip를 가지고 ProxyTable에 존재하는지 확인
-	//있으면 true, 없으면 false
-	public boolean ethernetIsProxy(byte[] input_ip) { //이더넷과 연결
-		_ARP_IP_ADDR target_ip = new _ARP_IP_ADDR();
-		System.arraycopy(input_ip, 0, target_ip, 0, ARP_LEN_IP_VALUE);
-
-		for(int i=0; i<proxyTable.size();i++) {
-			//제대로 인식하는지 확인 필요
-			if( proxyTable.get(i).ipAddr == target_ip) {
-				return true;
-			}
-		}
-		return false;
-
-	}
-
 	//들어온 ip와 같은 인덱스가 존재할 경우 인덱스의 mac주소를 리턴
 	public _ARP_MAC_ADDR isProxy(_ARP_IP_ADDR recv_ip) { //이더넷과 연결
 
