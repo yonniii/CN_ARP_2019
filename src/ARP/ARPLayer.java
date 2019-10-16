@@ -229,6 +229,7 @@ public class ARPLayer implements BaseLayer {
 			byte[] sendData = addHeader(ARP_Header, realInput);
 
 			//Ethernet send로 헤더를 붙인 데이터 전송을 구현해야함
+			((EthernetLayer)this.GetUnderLayer()).Send(sendData, sendData.length);
 
 			//보내고 나면 헤더를 초기화
 			ResetHeader();
