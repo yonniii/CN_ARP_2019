@@ -105,8 +105,6 @@ public class ARPLayer implements BaseLayer {
 		for (int i = 0; i < 6; i++) {
 			ARP_Header.mac_sendAddr.addr[i] = (byte) 0x00;
 			ARP_Header.mac_recvAddr.addr[i] = (byte) 0x00;
-			ARP_Header.ip_sendAddr.addr[i] = (byte) 0x00;
-			ARP_Header.ip_recvAddr.addr[i] = (byte) 0x00;
 		}
 
 		for (int i = 0; i < 4; i++) {
