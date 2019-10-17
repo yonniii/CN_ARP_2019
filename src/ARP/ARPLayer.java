@@ -34,6 +34,14 @@ public class ARPLayer implements BaseLayer {
 			this.addr[5] = (byte) 0x00;
 		}
 
+		public boolean equals(_ARP_MAC_ADDR input) {
+			for(int i=0; i<6; i++) {
+				if(this.addr[i]!= input.addr[i])
+					return false;
+			}
+			return true;//끝까지 돌았을때 다른게 없으면 true
+		}
+
 	}
 
 	private class _ARP_IP_ADDR {
@@ -45,6 +53,14 @@ public class ARPLayer implements BaseLayer {
 			this.addr[1] = (byte) 0x00;
 			this.addr[2] = (byte) 0x00;
 			this.addr[3] = (byte) 0x00;
+		}
+
+		public boolean equals(_ARP_IP_ADDR input) {
+			for(int i=0; i<4; i++) {
+				if(this.addr[i]!= input.addr[i])
+					return false;
+			}
+			return true;//끝까지 돌았을때 다른게 없으면 true
 		}
 
 	}
@@ -157,7 +173,7 @@ public class ARPLayer implements BaseLayer {
 
 		for(int i=0; i<proxyTable.size();i++) {
 			//제대로 인식하는지 확인 필요
-			if( proxyTable.get(i).ipAddr == recv_ip) {
+			if( proxyTable.get(i).ipAddr.equals(recv_ip)) {
 				return proxyTable.get(i).macAddr;
 			}
 		}
@@ -202,7 +218,7 @@ public class ARPLayer implements BaseLayer {
 			System.arraycopy(input, 24, recvIpAddr, 0, ARP_LEN_IP_VALUE);
 
 			//자신의 ip 주소와 같은지 확인
-			if(recvIpAddr == myIpAddr) {
+			if(recvIpAddr.equals(myIpAddr)) {
 				//같다면 basic arp
 				//자신의 맥 주소를 추출해서 input의 target.mac부분에 삽입
 				System.arraycopy(myMacAddr.addr, 0, input, 18, ARP_LEN_MAC_VALUE);
@@ -355,10 +371,8 @@ public class ARPLayer implements BaseLayer {
 	//캐쉬 테이블의 데이터를 complete로 변경
 	public void changeCache(CacheData givenData) {
 		//Ip addr을 기준으로 찾아서 추가
-		int check = 0;
 		for(int i = 0; i < cacheTable.size(); i++) {
 			if(cacheTable.get(i).getIpAddr().equals(givenData.getIpAddr())) {
-				check = 1; //이미 있는 경우
 
 				//값을 변경함
 				cacheTable.set(i, givenData);
