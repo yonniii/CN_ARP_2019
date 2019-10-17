@@ -345,8 +345,8 @@ public class ARPLayer implements BaseLayer {
 		//나중에 돌면서 체크 -> 있을 경우 오류로 할지 결정
 		_ARP_IP_ADDR ip = new _ARP_IP_ADDR();
 		_ARP_MAC_ADDR mac = new _ARP_MAC_ADDR();
-		System.arraycopy(givenIp, 0, ip, 0, ARP_LEN_IP_VALUE);
-		System.arraycopy(givenIp, 0, mac, 0, ARP_LEN_MAC_VALUE);
+		System.arraycopy(givenIp, 0, ip.addr, 0, ARP_LEN_IP_VALUE);
+		System.arraycopy(givenIp, 0, mac.addr, 0, ARP_LEN_MAC_VALUE);
 
 		proxyTable.add(new ProxyData(mac, ip, givenName));
 
