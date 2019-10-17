@@ -13,9 +13,7 @@ import javax.swing.JList;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Base64;
 
 import javax.sound.sampled.AudioFormat.Encoding;
 import javax.swing.*;
@@ -37,10 +35,6 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
    public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
    private static LayerManager m_LayerMgr = new LayerManager();
 
-
-   private JTextField MAC_Address;
-   static JComboBox<PcapIf> addr_comboBox;
-   JButton IP_Setting_Btn = new JButton("Setting");
    JPanel contentPane;
    static List ARP_CacheList;
    JButton ARPCache_ItemDelBtn;
@@ -56,23 +50,18 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
    JTextField ProxyARP_MacAddress;
    JTextField IP_Address;
    static List ProxyARP_List;
-   
-//   ARPLayer arplayer = (ARPLayer)m_LayerMgr.GetLayer("ARP");
-//   IPLayer iplayer = (IPLayer)m_LayerMgr.GetLayer("IP");
-//   TCPLayer tcplayer = (TCPLayer)m_LayerMgr.GetLayer("TCP");
-//   NILayer nilayer = (NILayer)m_LayerMgr.GetLayer("NI");
 
    public static void main(String[] args) {
 
       m_LayerMgr.AddLayer(new NILayer("NI"));
-      //m_LayerMgr.AddLayer(new ChatAppLayer("ChatApp"));
+     // m_LayerMgr.AddLayer(new ChatAppLayer("ChatApp"));
       m_LayerMgr.AddLayer(new IPLayer("IP"));
       m_LayerMgr.AddLayer(new EthernetLayer("Ethernet"));
       m_LayerMgr.AddLayer(new ARPLayer("ARP"));
       m_LayerMgr.AddLayer(new ApplicationLayer("GUI"));
       m_LayerMgr.AddLayer(new TCPLayer("TCP"));
-      m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ARP ( *IP ( *TCP ( *GUI ) ) ) ) ( *IP ( *TCP ( *GUI ) ) ) )");
      // m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *IP ( * TCP ( *ChatApp ( *GUI ) ) ) ) ( *ARP ( *IP ( *TCP ( *GUI ) ) ) ) )");
+      m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ARP ( *IP ( *TCP ( *GUI ) ) ) ) )");
       
       EventQueue.invokeLater(new Runnable() {//GUI구성
          public void run() {
@@ -90,6 +79,15 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
       Thread object = new Thread(thread);
       object.start();
    }
+   
+   static ARPLayer arplayer = (ARPLayer)m_LayerMgr.GetLayer("ARP");
+   static IPLayer iplayer = (IPLayer)m_LayerMgr.GetLayer("IP");
+   static TCPLayer tcplayer = (TCPLayer)m_LayerMgr.GetLayer("TCP");
+   static NILayer nilayer = (NILayer)m_LayerMgr.GetLayer("NI");
+   private JTextField MAC_Address;
+
+   JComboBox addr_comboBox;
+   JButton IP_Setting_Btn = new JButton("Setting");
    
    static class Renewal_Thread implements Runnable{
       public Renewal_Thread() {
@@ -109,11 +107,10 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
             //BASIC ARP
 
             ARP_CacheList.removeAll();
-            
-            for(int i = 0; i <((ARPLayer)m_LayerMgr.GetLayer("ARP")).cacheTable.size(); i++) {
-               String ipaddr = new String(((ARPLayer)m_LayerMgr.GetLayer("ARP")).ipaddr_byte(((ARPLayer)m_LayerMgr.GetLayer("ARP")).cacheTable.get(i).getIpAddr()));
-               String macaddr = new String(((ARPLayer)m_LayerMgr.GetLayer("ARP")).macaddr_byte(((ARPLayer)m_LayerMgr.GetLayer("ARP")).cacheTable.get(i).getMacAddr()));
-               int status = ((ARPLayer)m_LayerMgr.GetLayer("ARP")).cacheTable.get(i).getStatus();
+            for(int i = 0; i < arplayer.cacheTable.size(); i++) {
+               String ipaddr = new String(arplayer.ipaddr_byte(arplayer.cacheTable.get(i).getIpAddr()));
+               String macaddr = new String(arplayer.macaddr_byte(arplayer.cacheTable.get(i).getMacAddr()));
+               int status = arplayer.cacheTable.get(i).getStatus();
                String s;
                if(status == 0) {
                   s = "Incomplete";
@@ -123,7 +120,11 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
                }
                ARP_CacheList.addItem(ipaddr+"   "+ macaddr + "  " +  status);//화면에 띄워지는 것인지 고민해봐야함
             }
+            //
+            
          }
+         
+         
       }
    }
 
@@ -152,10 +153,11 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
       ARPcacheEditorPanel.setLayout(null);
 
       ARP_CacheList = new List();
-      ARP_CacheList.setBounds(-10, 10, 340, 254);
+      ARP_CacheList.setBounds(0, 0, 340, 254);
       ARPcacheEditorPanel.add(ARP_CacheList);
 
       ARPCache_ItemDelBtn = new JButton("Item Delete");
+      ARPCache_ItemDelBtn.setEnabled(false);
       ARPCache_ItemDelBtn.setBounds(63, 279, 106, 31);
       ARP_CachePanel.add(ARPCache_ItemDelBtn);
       ARPCache_ItemDelBtn.addActionListener(new setAddressListener());
@@ -167,15 +169,18 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
       ARP_CachePanel.add(ARPIP_Label);
 
       ARPCache_AllDelBtn = new JButton("All Delete");
+      ARPCache_AllDelBtn.setEnabled(false);
       ARPCache_AllDelBtn.setBounds(195, 279, 106, 31);
       ARP_CachePanel.add(ARPCache_AllDelBtn);
       ARPCache_AllDelBtn.addActionListener(new setAddressListener());
 
       ARPCache_IPSendBtn = new JButton("Send");
+      ARPCache_IPSendBtn.setEnabled(false);
       ARPCache_IPSendBtn.setBounds(282, 332, 68, 26);
       ARP_CachePanel.add(ARPCache_IPSendBtn);
 
       ARPCache_IPAddress = new JTextField();
+      ARPCache_IPAddress.setEnabled(false);
       ARPCache_IPAddress.setColumns(10);
       ARPCache_IPAddress.setBounds(79, 333, 195, 25);
       ARP_CachePanel.add(ARPCache_IPAddress);
@@ -195,11 +200,13 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
       HW_Label.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
 
       GratARP_SendBtn = new JButton("\uC804\uC1A1");
+      GratARP_SendBtn.setEnabled(false);
       GratARP_SendBtn.setBounds(100, 98, 100, 32);
       GratARP_Panel.add(GratARP_SendBtn);
       GratARP_SendBtn.addActionListener(new setAddressListener());
 
       GratARP_HWAddress = new JTextField();
+      GratARP_HWAddress.setEnabled(false);
       GratARP_HWAddress.setColumns(10);
       GratARP_HWAddress.setBounds(20, 49, 275, 27);
       GratARP_Panel.add(GratARP_HWAddress);
@@ -222,25 +229,30 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
       ProxyARPeditorPanel.add(ProxyARP_List);
 
       ProxyARP_AddBtn = new JButton("Add");
+      ProxyARP_AddBtn.setEnabled(false);
       ProxyARP_AddBtn.setBounds(23, 319, 140, 31);
       ProxyARP_Panel.add(ProxyARP_AddBtn);
       ProxyARP_AddBtn.addActionListener(new setAddressListener());
 
       ProxyARP_DelBtn = new JButton("Delete");
+      ProxyARP_DelBtn.setEnabled(false);
       ProxyARP_DelBtn.setBounds(195, 319, 140, 31);
       ProxyARP_Panel.add(ProxyARP_DelBtn);
 
       ProxyARP_Device = new JTextField();
+      ProxyARP_Device.setEnabled(false);
       ProxyARP_Device.setBounds(144, 215, 158, 21);
       ProxyARP_Panel.add(ProxyARP_Device);
       ProxyARP_Device.setColumns(10);
 
       ProxyARP_IPAddress = new JTextField();
+      ProxyARP_IPAddress.setEnabled(false);
       ProxyARP_IPAddress.setBounds(144, 246, 158, 21);
       ProxyARP_Panel.add(ProxyARP_IPAddress);
       ProxyARP_IPAddress.setColumns(10);
 
       ProxyARP_MacAddress = new JTextField();
+      ProxyARP_MacAddress.setEnabled(false);
       ProxyARP_MacAddress.setBounds(144, 277, 158, 21);
       ProxyARP_Panel.add(ProxyARP_MacAddress);
       ProxyARP_MacAddress.setColumns(10);
@@ -286,15 +298,14 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
       MAC_Address.setBounds(56, 68, 246, 21);
       Address_Panel.add(MAC_Address);
       
-      String[] nic = new String[((NILayer)m_LayerMgr.GetLayer("NI")).m_pAdapterList.size()];
-         for (int i = 0; i < ((NILayer)m_LayerMgr.GetLayer("NI")).m_pAdapterList.size(); i++) {
-            nic[i] = ((NILayer)m_LayerMgr.GetLayer("NI")).m_pAdapterList.get(i).getDescription()
-                  + ((NILayer)m_LayerMgr.GetLayer("NI")).m_pAdapterList.get(i).getName();
+      String[] nic = new String[((NILayer) m_LayerMgr.GetLayer("Ni")).m_pAdapterList.size()];
+         for (int i = 0; i < ((NILayer) m_LayerMgr.GetLayer("Ni")).m_pAdapterList.size(); i++) {
+            nic[i] = ((NILayer) m_LayerMgr.GetLayer("Ni")).m_pAdapterList.get(i).getDescription()
+                  + ((NILayer) m_LayerMgr.GetLayer("Ni")).m_pAdapterList.get(i).getName();
          }
-      addr_comboBox = new JComboBox(nic);
+       addr_comboBox = new JComboBox(nic);
       addr_comboBox.setBounds(56, 28, 246, 23);
       Address_Panel.add(addr_comboBox);
-      addr_comboBox.addActionListener(new setAddressListener());
       
       JButton IP_Setting_Btn = new JButton("Setting");
       IP_Setting_Btn.setBounds(211, 155, 91, 23);
@@ -302,13 +313,8 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
    }
 
    class setAddressListener implements ActionListener {
-      
       @Override
       public void actionPerformed(ActionEvent e) {
-         ARPLayer arplayer = (ARPLayer)m_LayerMgr.GetLayer("ARP");
-          IPLayer iplayer = (IPLayer)m_LayerMgr.GetLayer("IP");
-          TCPLayer tcplayer = (TCPLayer)m_LayerMgr.GetLayer("TCP");
-          NILayer nilayer = (NILayer)m_LayerMgr.GetLayer("NI");
          if (e.getSource() == addr_comboBox) {
                byte[] mac = new byte[0];
                try {
@@ -316,11 +322,8 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
                } catch (IOException e1) {
                   e1.printStackTrace();
                }
-               
-               String macAddr = "";
-               for (int i = 0; i < mac.length; i++)
-                   macAddr += String.format("%02X%s", mac[i], (i < mac.length - 1) ? "" : "");
-          MAC_Address.setText(macAddr);
+               String macAddr = new String(mac);
+               MAC_Address.setText(macAddr);
             }
          
          //send버튼 누르면 ip주소 mac주소 incomplete띄우기, arplayer에서 얻어오기(thread확인)
@@ -331,24 +334,24 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
             tcplayer.Send(no);
             arplayer.setMacAddress(MAC_Address.getText().getBytes());
             for(int i = 0; i < arplayer.cacheTable.size(); i++) {
-               if(arplayer.ipaddr_byte(arplayer.cacheTable.get(i).getIpAddr()) == ARPCache_IPAddress.getText().getBytes()) {
-                  if(arplayer.cacheTable.get(i).getStatus() == 1) {
-                     JOptionPane.showMessageDialog(null, "이미 MAC 주소가 존재합니다.", "ERROR", JOptionPane.ERROR_MESSAGE);
-                     ARPCache_IPAddress.setText("");
-                  }
-               }
+            	if(arplayer.ipaddr_byte(arplayer.cacheTable.get(i).getIpAddr()) == ARPCache_IPAddress.getText().getBytes()) {
+            		if(arplayer.cacheTable.get(i).getStatus() == 1) {
+            			JOptionPane.showMessageDialog(null, "이미 MAC 주소가 존재합니다.", "ERROR", JOptionPane.ERROR_MESSAGE);
+            			ARPCache_IPAddress.setText("");
+            		}
+            	}
             }
          }
          if(e.getSource() == IP_Setting_Btn) {
-            arplayer.setIpAddress(IP_Address.getText().getBytes());
+        	 arplayer.setIpAddress(IP_Address.getText().getBytes());
          }
          if(e.getSource() == ARPCache_ItemDelBtn) {
          //아이템 삭제
-            arplayer.deleteCache();
+        	 arplayer.deleteCache();
          }
          if(e.getSource() == ARPCache_AllDelBtn) {
          //캐시테이블 전체 삭제
-            arplayer.deleteAllCache();
+        	 arplayer.deleteAllCache();
          }
          if(e.getSource() == ProxyARP_AddBtn) {
             String device = ProxyARP_Device.getText();
@@ -360,13 +363,25 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
          }
          if(e.getSource() == ProxyARP_DelBtn) {
             //테이블삭제(ARP에서)
-            arplayer.deleteProxy();
+        	 arplayer.deleteProxy();
          }
          if(e.getSource() == GratARP_SendBtn) {
             //change_mac(ARP에서 한 것 불러와야함) 
          }
+         
+         
+            
+         //iplayer로 보낼때 ip만 보내면 된다.(string로)
+         //add버튼 누르면 proxy arp entry에 device ip주소 ethernet주소 띄우기(thread확인)
+         //iplayer로 보냄(string로)
+         //delete는 다 삭제하게 
+
       }
    }
+//   public boolean Receive(byte[] input) {
+//      //대답이 오면 ip complete로 덮어씌움 arplayer에서 얻어오기(thread 확인)
+//      return true;
+//   }
    @Override
    public void SetUnderLayer(BaseLayer pUnderLayer) {
       // TODO Auto-generated method stub
