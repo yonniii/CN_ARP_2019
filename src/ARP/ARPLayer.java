@@ -53,8 +53,8 @@ public class ARPLayer implements BaseLayer {
 
 		byte[] macType;
 		byte[] ipType;
-		byte lenMacAddr;
-		byte lenIpAddr;
+		byte[]lenMacAddr;
+		byte[] lenIpAddr;
 		byte[] opCode;
 		_ARP_MAC_ADDR mac_sendAddr;
 		_ARP_MAC_ADDR mac_recvAddr;
@@ -64,8 +64,8 @@ public class ARPLayer implements BaseLayer {
 		public _ARP_FRAME() {
 			macType = new byte[ARP_MAC_TYPE];
 			ipType = new byte[ARP_IP_TYPE];
-			lenMacAddr = 0;
-			lenIpAddr = 0;
+			lenMacAddr = new byte[1];
+			lenIpAddr = new byte[1];
 			opCode = new byte[OPCODE];
 			mac_sendAddr = new _ARP_MAC_ADDR();
 			mac_recvAddr = new _ARP_MAC_ADDR();
@@ -99,8 +99,8 @@ public class ARPLayer implements BaseLayer {
 
 		ARP_Header.macType= intToByte4(1);
 		ARP_Header.ipType = intToByte4(0x0800);
-		ARP_Header.lenMacAddr = (byte)ARP_LEN_MAC_VALUE;
-		ARP_Header.lenIpAddr = (byte)ARP_LEN_IP_VALUE;
+		ARP_Header.lenMacAddr[0] = (byte)ARP_LEN_MAC_VALUE;
+		ARP_Header.lenIpAddr[0] = (byte)ARP_LEN_IP_VALUE;
 
 		for (int i = 0; i < 6; i++) {
 			ARP_Header.mac_sendAddr.addr[i] = (byte) 0x00;
