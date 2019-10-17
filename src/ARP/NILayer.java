@@ -10,10 +10,10 @@ import org.jnetpcap.packet.PcapPacket;
 import org.jnetpcap.packet.PcapPacketHandler;
 
 public class NILayer implements BaseLayer {
-
 	public int nUpperLayerCount = 0;
+	public int nUnderLayerCount = 0;
 	public String pLayerName = null;
-	public BaseLayer p_UnderLayer = null;
+	public ArrayList<BaseLayer> p_aUnderLayer = new ArrayList<BaseLayer>();
 	public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
 
 	int m_iNumAdapter;
@@ -57,7 +57,7 @@ public class NILayer implements BaseLayer {
 	}
 
 	public boolean Send(byte[] input, int length) {
-		
+
 		ByteBuffer buf = ByteBuffer.wrap(input);
 		if (m_AdapterObject.sendPacket(buf) != Pcap.OK) {
 			System.err.println(m_AdapterObject.getErr());
@@ -73,13 +73,12 @@ public class NILayer implements BaseLayer {
 
 		return false;
 	}
-
 	@Override
 	public void SetUnderLayer(BaseLayer pUnderLayer) {
 		// TODO Auto-generated method stub
 		if (pUnderLayer == null)
 			return;
-		p_UnderLayer = pUnderLayer;
+		this.p_aUnderLayer.add(nUnderLayerCount++, pUnderLayer);
 	}
 
 	@Override
@@ -98,12 +97,11 @@ public class NILayer implements BaseLayer {
 	}
 
 	@Override
-	public BaseLayer GetUnderLayer() {
-		if (p_UnderLayer == null)
+	public BaseLayer GetUnderLayer(int nindex) {
+		if (nindex < 0 || nindex > m_nUnderLayerCount || m_nUnderLayerCount < 0)
 			return null;
-		return p_UnderLayer;
+		return p_aUnderLayer.get(nindex);
 	}
-
 	@Override
 	public BaseLayer GetUpperLayer(int nindex) {
 		// TODO Auto-generated method stub
@@ -118,6 +116,7 @@ public class NILayer implements BaseLayer {
 		pUULayer.SetUnderLayer(this);
 
 	}
+
 }
 
 class Receive_Thread implements Runnable {

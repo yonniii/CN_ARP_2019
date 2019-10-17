@@ -37,10 +37,11 @@ public class IPLayer implements BaseLayer {
     }
 
     _IP_HEADER ipHeader = new _IP_HEADER();
-    final int IPHEADERSIZE = 8;
+    final int IPHEADERSIZE = 24;
     public int nUpperLayerCount = 0;
+    public int nUnderLayerCount = 0;
     public String pLayerName = null;
-    public BaseLayer p_UnderLayer = null;
+    public ArrayList<BaseLayer> p_aUnderLayer = new ArrayList<BaseLayer>();
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
 
     public IPLayer(String pName){
@@ -63,15 +64,25 @@ public class IPLayer implements BaseLayer {
     }
 
     public void setDstIPAddress(String dstIPAddress) {
-        int intDstAddr = Integer.parseInt(dstIPAddress);
-        ipHeader.ipDSTAddr = intToByte4(intDstAddr);
+        String[] rawAddr = dstIPAddress.split("\\.");
+        int[] str2int = new int[ipHeader.dstSize];
+        for (int i = 0; i < rawAddr.length; i++) {
+            str2int[i] = Integer.parseInt(rawAddr[i]);
+        }
+        byte[] int2byte = new byte[4];
+
+        int2byte[0] |= (byte) (str2int[0]);
+        int2byte[1] |= (byte) (str2int[1]);
+        int2byte[2] |= (byte) (str2int[2]);
+        int2byte[3] |= (byte) (str2int[3]);
+        ipHeader.ipDSTAddr = int2byte;
     }
 
     public boolean Send(String dstIpAddr){
         setDstIPAddress(dstIpAddr);
         byte[] buf = ObjToByte(ipHeader,0);
         int bufSize=buf.length;
-        if (((ARPLayer) this.GetUnderLayer()).Send(buf,bufSize))
+        if (((ARPLayer) this.GetUnderLayer(0)).Send(buf,bufSize))
             return true;
         else
             return false;
@@ -99,42 +110,48 @@ public class IPLayer implements BaseLayer {
 
 
     @Override
+    public void SetUnderLayer(BaseLayer pUnderLayer) {
+        // TODO Auto-generated method stub
+        if (pUnderLayer == null)
+            return;
+        this.p_aUnderLayer.add(nUnderLayerCount++, pUnderLayer);
+    }
+
+    @Override
+    public void SetUpperLayer(BaseLayer pUpperLayer) {
+        // TODO Auto-generated method stub
+        if (pUpperLayer == null)
+            return;
+        this.p_aUpperLayer.add(nUpperLayerCount++, pUpperLayer);
+        // nUpperLayerCount++;
+    }
+
+    @Override
     public String GetLayerName() {
+        // TODO Auto-generated method stub
         return pLayerName;
     }
 
     @Override
-    public BaseLayer GetUnderLayer() {
-        if (p_UnderLayer == null)
+    public BaseLayer GetUnderLayer(int nindex) {
+        if (nindex < 0 || nindex > m_nUnderLayerCount || m_nUnderLayerCount < 0)
             return null;
-        return p_UnderLayer;
+        return p_aUnderLayer.get(nindex);
     }
-
     @Override
     public BaseLayer GetUpperLayer(int nindex) {
+        // TODO Auto-generated method stub
         if (nindex < 0 || nindex > nUpperLayerCount || nUpperLayerCount < 0)
             return null;
         return p_aUpperLayer.get(nindex);
     }
 
     @Override
-    public void SetUnderLayer(BaseLayer pUnderLayer) {
-        if (pUnderLayer == null)
-            return;
-        p_UnderLayer = pUnderLayer;
-    }
-
-    @Override
-    public void SetUpperLayer(BaseLayer pUpperLayer) {
-        if (pUpperLayer == null)
-            return;
-        this.p_aUpperLayer.add(nUpperLayerCount++, pUpperLayer);
-    }
-
-    @Override
     public void SetUpperUnderLayer(BaseLayer pUULayer) {
         this.SetUpperLayer(pUULayer);
         pUULayer.SetUnderLayer(this);
+
     }
+
 
 }
