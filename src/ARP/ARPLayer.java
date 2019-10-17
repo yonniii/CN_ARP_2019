@@ -371,10 +371,8 @@ public class ARPLayer implements BaseLayer {
 	//캐쉬 테이블의 데이터를 complete로 변경
 	public void changeCache(CacheData givenData) {
 		//Ip addr을 기준으로 찾아서 추가
-		int check = 0;
 		for(int i = 0; i < cacheTable.size(); i++) {
 			if(cacheTable.get(i).getIpAddr().equals(givenData.getIpAddr())) {
-				check = 1; //이미 있는 경우
 
 				//값을 변경함
 				cacheTable.set(i, givenData);
