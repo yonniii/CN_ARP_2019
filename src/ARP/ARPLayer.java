@@ -130,8 +130,8 @@ public class ARPLayer implements BaseLayer {
 		_ARP_IP_ADDR srcIpAddr = new _ARP_IP_ADDR();
 
 		//arraycopy로 dst랑 src ip주소 추출
-		System.arraycopy(input, 0, dstIpAddr.addr, 0, ARP_LEN_IP_VALUE);
-		System.arraycopy(input, 4, srcIpAddr.addr, 0, ARP_LEN_IP_VALUE);
+		System.arraycopy(input, 12, dstIpAddr.addr, 0, ARP_LEN_IP_VALUE);
+		System.arraycopy(input, 16, srcIpAddr.addr, 0, ARP_LEN_IP_VALUE);
 
 		//send용 ARPHeader세팅
 		sendARPHeader(dstIpAddr, srcIpAddr);
