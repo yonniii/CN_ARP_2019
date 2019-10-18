@@ -63,17 +63,13 @@ public class IPLayer implements BaseLayer {
     }
 
     public void setDstIPAddress(String dstIPAddress) {
-        String[] rawAddr = dstIPAddress.split("\\.");
-        int[] str2int = new int[ipHeader.dstSize];
-        for (int i = 0; i < rawAddr.length; i++) {
-            str2int[i] = Integer.parseInt(rawAddr[i]);
-        }
+        String[] IP_addr = dstIPAddress.split("\\.");
         byte[] int2byte = new byte[4];
+        for (int i = 0; i < 4; i++) {
+            int2byte[i] = (byte) Integer.parseInt(IP_addr[i]);
+//            System.out.println(int2byte[i]);
+        }
 
-        int2byte[0] |= (byte) (str2int[0]);
-        int2byte[1] |= (byte) (str2int[1]);
-        int2byte[2] |= (byte) (str2int[2]);
-        int2byte[3] |= (byte) (str2int[3]);
         ipHeader.ipDSTAddr = int2byte;
     }
 
