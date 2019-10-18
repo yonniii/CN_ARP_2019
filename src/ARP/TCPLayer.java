@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class TCPLayer implements BaseLayer {
 
-    public class _TCP_HEADER{
+    public class _TCP_HEADER {
         byte[] tcpDSTPort; //4
         byte[] tcpSrcPort; //4
         byte[] tcpSeq;
@@ -22,7 +22,7 @@ public class TCPLayer implements BaseLayer {
         int srcPortSize = 2;
         int headerSize;
 
-        public _TCP_HEADER(){
+        public _TCP_HEADER() {
             this.tcpDSTPort = new byte[dstPortSize];
             this.tcpSrcPort = new byte[srcPortSize];
             this.tcpSeq = new byte[4];
@@ -45,64 +45,63 @@ public class TCPLayer implements BaseLayer {
     public String pLayerName = null;
     public ArrayList<BaseLayer> p_aUnderLayer = new ArrayList<BaseLayer>();
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
-    int dstPort = 8888;
-    int srcPort = 8888;
 
-    public TCPLayer(String pName){
+    public TCPLayer(String pName) {
         pLayerName = pName;
         ResetHeader();
     }
-    public void ResetHeader(){ tcpHeader = new _TCP_HEADER(); }
 
-    private byte[] ObjToByte(_TCP_HEADER header, int length){
-        byte[] buf = new byte[length + header.headerSize] ;
+    public void ResetHeader() {
+        tcpHeader = new _TCP_HEADER();
+    }
+
+    private byte[] ObjToByte(_TCP_HEADER header, int length) {
+        byte[] buf = new byte[length + header.headerSize];
         System.arraycopy(header.tcpDSTPort, 0, buf, header.dstIndex, header.dstPortSize);
-        System.arraycopy(header.tcpSrcPort, 0, buf, header.dstIndex+header.dstPortSize, header.srcPortSize);
-//        System.arraycopy(header.ipDATA, 0, buf, 0+header.srcSize +header.dstSize, length);
+        System.arraycopy(header.tcpSrcPort, 0, buf, header.dstIndex + header.dstPortSize, header.srcPortSize);
+        if( length != 0 )
+            System.arraycopy(header.tcpData, 0, buf, header.headerSize, length);
         return buf;
     }
 
-    public void setPorts(){
-        this.setDstPort(this.dstPort,tcpHeader);
-        this.setSrcPort(this.srcPort,tcpHeader);
+    public void setDstPort(int pNum) {
+        tcpHeader.tcpDSTPort = intToByte2(pNum);
     }
 
-    void setDstPort(int pNum,_TCP_HEADER header){
-        header.tcpDSTPort = intToByte2(pNum);
+    public void setSrcPort(int pNum) {
+        tcpHeader.tcpSrcPort = intToByte2(pNum);
     }
 
-    void setSrcPort(int pNum,_TCP_HEADER header){
-        header.tcpSrcPort = intToByte2(pNum);
+    int getInputSize(byte[] input) {
+        if (input == null) {
+            return 0;
+        } else {
+            return input.length;
+        }
     }
 
-
-    public boolean Send(byte[] input){
-//        this.tcpHeader.tcpData = input;
-//        int dataLen = input.length;
-//        byte[] buf = ObjToByte(tcpHeader,dataLen);
-//        int bufSize = dataLen+tcpHeader.headerSize;
-//        if (((IPLayer) this.GetUnderLayer(0)).Send(buf,bufSize)) ;
-        this.tcpHeader.tcpData = input;
-        int dataLen = 0;
-        byte[] buf = ObjToByte(tcpHeader,dataLen);
-        int bufSize = dataLen+tcpHeader.headerSize;
-        if (((IPLayer) this.GetUnderLayer(0)).Send(buf,bufSize))
+    public boolean Send(byte[] input) {
+        tcpHeader.tcpData = input;
+        int dataLen = getInputSize(input);
+        byte[] buf = ObjToByte(tcpHeader, dataLen);
+        int bufSize = dataLen + tcpHeader.headerSize;
+        if (((IPLayer) this.GetUnderLayer(0)).Send(buf, bufSize))
             return true;
         else
             return false;
     }
 
-    public boolean Receive(byte[] input){
-        if(!IsItMyPort(input))
+    public boolean Receive(byte[] input) {
+        if (!IsItMyPort(input))
             return false;
         byte[] buf = removeTCPHeader(input, input.length);
-        if(((ApplicationLayer)this.GetUpperLayer(0)).Receive(buf))
+        if (((ApplicationLayer) this.GetUpperLayer(0)).Receive(buf))
             return true;
         else
             return false;
     }
 
-    private boolean IsItMyPort(byte[] input){
+    private boolean IsItMyPort(byte[] input) {
         for (int i = 0; i < tcpHeader.srcPortSize; i++) {
             if (tcpHeader.tcpSrcPort[i] == input[i + tcpHeader.dstIndex]) //목적지이더넷주소가 자신의이더넷주소가아니면 false와 break
                 continue;
@@ -115,9 +114,9 @@ public class TCPLayer implements BaseLayer {
         return true;
     }
 
-    private byte[] removeTCPHeader(byte[] input,int length){
-        byte[] buf = new byte[length-tcpHeader.headerSize];
-        System.arraycopy(input,tcpHeader.headerSize,buf,0,length-tcpHeader.headerSize);
+    private byte[] removeTCPHeader(byte[] input, int length) {
+        byte[] buf = new byte[length - tcpHeader.headerSize];
+        System.arraycopy(input, tcpHeader.headerSize, buf, 0, length - tcpHeader.headerSize);
         return buf;
     }
 
@@ -169,6 +168,7 @@ public class TCPLayer implements BaseLayer {
             return null;
         return p_aUnderLayer.get(nindex);
     }
+
     @Override
     public BaseLayer GetUpperLayer(int nindex) {
         // TODO Auto-generated method stub

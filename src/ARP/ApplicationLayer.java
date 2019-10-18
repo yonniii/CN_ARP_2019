@@ -326,9 +326,10 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
          //send버튼 누르면 ip주소 mac주소 incomplete띄우기, arplayer에서 얻어오기(thread확인)
 
          if(e.getSource() == ARPCache_IPSendBtn) {
-            iplayer.Send(ARPCache_IPAddress.getText());
+            iplayer.setDstIPAddress(ARPCache_IPAddress.getText());
+            tcplayer.setDstPort(8888);
+            tcplayer.setSrcPort(8888);
             byte[] no = null;
-            tcplayer.Send(no);
             arplayer.setMacAddress(MAC_Address.getText().getBytes());
             for(int i = 0; i < arplayer.cacheTable.size(); i++) {
                if(arplayer.ipaddr_byte(arplayer.cacheTable.get(i).getIpAddr()) == ARPCache_IPAddress.getText().getBytes()) {
@@ -338,6 +339,8 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
                   }
                }
             }
+
+            tcplayer.Send(no);
          }
          if(e.getSource() == IP_Setting_Btn) {
             String[] IP_addr = IP_Address.getText().split("\\.");
@@ -363,7 +366,6 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
             String mac = ProxyARP_MacAddress.getText();
             arplayer.addProxy(ip.getBytes(), mac.getBytes(), device);
             String ipAddr = ip;
-
             String macAddr = mac;
             ProxyARP_List.addItem(device+"  "+ipAddr+"  "+macAddr);
 

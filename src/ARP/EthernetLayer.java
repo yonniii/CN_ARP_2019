@@ -87,7 +87,7 @@ public class EthernetLayer implements BaseLayer {
       return true;
    }*/
 
-	public boolean ARPSend(byte[] input, int length) {
+	public boolean Send(byte[] input, int length) {
 		System.out.println("Ethernet_File_Send");
 
 		byte[] bytes = new byte[input.length + enet_frame.Header_Size]; // 헤더 길이를 늘린 새로운 배열
