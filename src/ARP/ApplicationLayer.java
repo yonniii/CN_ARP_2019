@@ -303,12 +303,24 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
 
    class setAddressListener implements ActionListener {
 
+      byte[] macAddr2byte(String addr){
+         byte[] buf = new byte[6];
+         buf[0] = (byte) Integer.parseInt(addr.substring(0,2),16);
+         buf[1] = (byte) Integer.parseInt(addr.substring(2,4),16);
+         buf[2] = (byte) Integer.parseInt(addr.substring(4,6),16);
+         buf[3] = (byte) Integer.parseInt(addr.substring(6,8),16);
+         buf[4] = (byte) Integer.parseInt(addr.substring(8,10),16);
+         buf[5] = (byte) Integer.parseInt(addr.substring(10,12),16);
+         return buf;
+      }
+
       @Override
       public void actionPerformed(ActionEvent e) {
          ARPLayer arplayer = (ARPLayer)m_LayerMgr.GetLayer("ARP");
          IPLayer iplayer = (IPLayer)m_LayerMgr.GetLayer("IP");
          TCPLayer tcplayer = (TCPLayer)m_LayerMgr.GetLayer("TCP");
          NILayer nilayer = (NILayer)m_LayerMgr.GetLayer("NI");
+         EthernetLayer ethernetLayer = (EthernetLayer)m_LayerMgr.GetLayer("Ethernet");
          if (e.getSource() == addr_comboBox) {
             byte[] mac = new byte[0];
             try {
@@ -330,7 +342,9 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
             tcplayer.setDstPort(8888);
             tcplayer.setSrcPort(8888);
             byte[] no = null;
-            arplayer.setMacAddress(MAC_Address.getText().getBytes());
+            byte[] macAddr_byte = macAddr2byte(MAC_Address.getText());
+            arplayer.setMacAddress(macAddr_byte);
+            ethernetLayer.setHeaderMac(macAddr_byte);
             for(int i = 0; i < arplayer.cacheTable.size(); i++) {
                if(arplayer.ipaddr_byte(arplayer.cacheTable.get(i).getIpAddr()) == ARPCache_IPAddress.getText().getBytes()) {
                   if(arplayer.cacheTable.get(i).getStatus() == 1) {
