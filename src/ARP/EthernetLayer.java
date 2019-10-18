@@ -22,9 +22,19 @@ public class EthernetLayer implements BaseLayer {
             this.addr[4] = (byte) 0x00;
             this.addr[5] = (byte) 0x00;
         }
+
+        void setBroadAddr() {
+            this.addr[0] = (byte) 0xff;
+            this.addr[1] = (byte) 0xff;
+            this.addr[2] = (byte) 0xff;
+            this.addr[3] = (byte) 0xff;
+            this.addr[4] = (byte) 0xff;
+            this.addr[5] = (byte) 0xff;
+        }
     } //생성자
 
     private class _ETHERNET_Frame {
+        byte[] enet_data;
         _ETHERNET_ADDR enet_dstaddr;
         _ETHERNET_ADDR enet_srcaddr;
         byte[] enet_type;
@@ -36,7 +46,7 @@ public class EthernetLayer implements BaseLayer {
             this.enet_dstaddr = new _ETHERNET_ADDR();
             this.enet_srcaddr = new _ETHERNET_ADDR();
             this.enet_type = new byte[2];
-            // this.enet_data = null;
+             this.enet_data = null;
         }
     }// 헤더 프레임 클래스와 생성자
 
@@ -83,28 +93,34 @@ public class EthernetLayer implements BaseLayer {
       System.out.println();
       this.GetUnderLayer().Send(bytes, bytes.length); // 하위레이어, 즉 NILayer로 내려보낸다.
 
-      return true;
-   }*/
-
+       return true;
+    }*/
+    public void setDst2Broad() {
+        _ETHERNET_ADDR broad = new _ETHERNET_ADDR();
+        broad.setBroadAddr();
+        enet_frame.enet_dstaddr = broad;
+    }
+    private byte[] ObjToByte(byte[] input, int length){
+        byte[] buf = new byte[length + enet_frame.Header_Size] ;
+        System.arraycopy(enet_frame.enet_dstaddr.addr, 0, buf,0, enet_frame.Address_Size);
+        System.arraycopy(enet_frame.enet_srcaddr.addr, 0, buf, enet_frame.Address_Size, enet_frame.Address_Size);
+        buf[12] = enet_frame.enet_type[0];
+        buf[13] = enet_frame.enet_type[1];
+        System.arraycopy(enet_frame.enet_data, 0 ,buf, enet_frame.Header_Size, length);
+        return buf;
+    }
     public boolean Send(byte[] input, int length) {
         System.out.println("Ethernet_Send");
 
-        byte[] bytes = new byte[input.length + enet_frame.Header_Size]; // 헤더 길이를 늘린 새로운 배열
+        byte[] bytes; // 헤더 길이를 늘린 새로운 배열
 
-        for (int i = 0; i < enet_frame.Address_Size; i++) {
-            bytes[i] = enet_frame.enet_dstaddr.addr[i]; //index라서 1을 더 빼준거임.
-        }
-        for (int i = 0; i < enet_frame.Address_Size; i++) {
-            bytes[i + enet_frame.Address_Size] = enet_frame.enet_srcaddr.addr[i];
-        }
+        setDst2Broad();
+        enet_frame.enet_data = input;
         enet_frame.enet_type[0] = (byte) 0x20;
         enet_frame.enet_type[1] = (byte) 0x90;
-        bytes[12] = enet_frame.enet_type[0];
-        bytes[13] = enet_frame.enet_type[1]; //ARP에 맞게 헤더의 type을 지정한다.
-        for (int i = 0; i < length; i++) {
-            bytes[i + enet_frame.Header_Size] = input[i];
-        }
-        this.GetUnderLayer(0).Send(bytes, bytes.length);
+
+        bytes = ObjToByte(input,length);
+        ((NILayer)this.GetUnderLayer(0)).Send(bytes, bytes.length);
 
         return true;
     }
