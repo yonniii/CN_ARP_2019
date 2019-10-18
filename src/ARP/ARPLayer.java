@@ -1,6 +1,9 @@
 package ARP;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ARPLayer implements BaseLayer {
 	public int nUpperLayerCount = 0;
@@ -219,7 +222,7 @@ public class ARPLayer implements BaseLayer {
 
 		//opCode가 1인 경우
 		//gratuitous인지 proxy인지 basic인지 버리는 것인지 결정
-		
+
 		//opCode가 2인 경우
 		//(원하는 정보를 얻은 것이므로 원하는 정보를 추출하여 해쉬 테이블을 업데이트 함)
 		// 1. sender부분의 mac주소가 우리가 알고 싶었던 주소 -> 추출
@@ -231,7 +234,7 @@ public class ARPLayer implements BaseLayer {
 		// 1인지 2인지 확인
 		if(opCode == ASK) {
 			// 1인 경우
-			
+
 			//gratuitous인 경우인지 확인
 
 			//target ip 주소 추출 
@@ -257,7 +260,7 @@ public class ARPLayer implements BaseLayer {
 			}
 			//basic, proxy 또는 자신과 관련없는 패킷인 경우
 			else {
-				
+
 				// target의 ip주소가 자신의 ip주소와 같은지 확인(basic,proxy 아니면 자신과 관련 없는 패킷)
 				if(recvIpAddr.equals(myIpAddr)) {
 					//같다면 basic arp
@@ -388,6 +391,7 @@ public class ARPLayer implements BaseLayer {
 	//캐쉬 테이블에 데이터를 추가하는 경우
 	public void addCache(CacheData givenData) {
 		//Ip addr을 기준으로 찾아서 추가
+
 		int check = 0;
 		for(int i = 0; i < cacheTable.size(); i++) {
 			if(cacheTable.get(i).getIpAddr().equals(givenData.getIpAddr())) {
@@ -396,10 +400,14 @@ public class ARPLayer implements BaseLayer {
 				return;
 			}
 		}
-		if(check != 1) //테이블에 매개변수의 ip가 없는 경우
+		if(check != 1) { //테이블에 매개변수의 ip가 없는 경우
+			//incomplete이 들어오는 부분은 어디인가
 			cacheTable.add(givenData);
+			cacheThread(givenData.status, cacheTable,  cacheTable.size()-1);   
+			//캐시쓰레드에  해당 데이터의 status, 캐시테이블, 인덱스 값을 매개변수로 넘겨줌(status상태에 따라 20분, 3분동안 저장)
+		}
 	}
-
+	
 	//프록시 테이블에 데이터를 추가하는 경우
 	public void addProxy(byte[] givenIp, byte[] givenMac, String givenName) {
 		//나중에 돌면서 체크 -> 있을 경우 오류로 할지 결정
@@ -412,19 +420,18 @@ public class ARPLayer implements BaseLayer {
 
 	}
 
-	//캐쉬 테이블의 데이터를 complete로 변경
-	public void changeCache(CacheData givenData) {
-		//Ip addr을 기준으로 찾아서 추가
-		for(int i = 0; i < cacheTable.size(); i++) {
-			if(cacheTable.get(i).getIpAddr().equals(givenData.getIpAddr())) {
-
-				//값을 변경함
-				cacheTable.set(i, givenData);
-
-				return;
-			}
-		}
-	}
+	 //캐쉬 테이블의 데이터를 complete로 변경
+	   public void changeCache(CacheData givenData) {
+	      //Ip addr을 기준으로 찾아서 추가
+	      for(int i = 0; i < cacheTable.size(); i++) {
+	         if(cacheTable.get(i).getIpAddr().equals(givenData.getIpAddr())) {
+	            cacheTable.set(i, givenData);//값을 변경함
+	            cacheThread(givenData.status, cacheTable,  cacheTable.size()-1);   
+	            //캐시쓰레드 실행(addCache에서와 동일한 기능 수행)
+	            return;
+	         }
+	      }
+	   }
 
 	//가장 마지막으로 들어온 값 삭제
 	public void deleteCache() {
@@ -450,6 +457,46 @@ public class ARPLayer implements BaseLayer {
 	public byte[] ipaddr_byte(_ARP_IP_ADDR addr) {
 		return addr.addr;
 	}
+
+	public void cacheThread(int status, List<CacheData> cacheTable, int index) {
+		Table_Thread thread = new Table_Thread(status, cacheTable, index);
+		Thread obj = new Thread(thread);
+		obj.start();
+	}
+
+
+	class Table_Thread implements Runnable {
+		int status, index;
+		List<CacheData> cacheTable;
+
+		private Timer timer; 
+		private Table_Task task = new Table_Task();
+
+		public Table_Thread(int input_status, List<CacheData> input_cacheTable, int input_index) {//현재 인덱스 위치(현재 테이블 사이즈)
+			status = input_status;
+			cacheTable = input_cacheTable;
+			index = input_index;
+		}
+
+		@Override
+		public void run() {
+			if(status==COMPLETE) 
+				//만약 status상태가 complete라면 20분동안 테이블에 저장해뒀다가 task실행(테이블에서 삭제)
+				timer.schedule(task, 1200000); //20분
+			else   
+				//status가 INCOMPLETE면 3분동안 응답을 기다리다가 안오면 task실행(테이블에서 삭제)
+				timer.schedule(task, 180000); //3분
+		}
+
+		class Table_Task extends TimerTask{
+			public void run() {
+				//timer.schedule에서 지정한 시간이 완료되면 task를 실행함
+				//테이블에서 해당 인덱스에 해당하는 캐시데이터를 삭제
+				cacheTable.remove(index);
+			}
+		}
+	}
+
 
 	byte[] intToByte2(int value) { //정수형을 byte 2배열로 바꿈.
 		byte[] temp = new byte[2];
