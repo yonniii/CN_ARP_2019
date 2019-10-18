@@ -33,11 +33,10 @@ public class IPLayer implements BaseLayer {
         int dstIndex = 12;
         int srcSize = 4;
         int dstSize = 4;
-
+        int IPHEADERSIZE = 24;
     }
 
     _IP_HEADER ipHeader = new _IP_HEADER();
-    final int IPHEADERSIZE = 24;
     public int nUpperLayerCount = 0;
     public int nUnderLayerCount = 0;
     public String pLayerName = null;
@@ -51,7 +50,7 @@ public class IPLayer implements BaseLayer {
     public void ResetHeader(){ ipHeader = new _IP_HEADER(); }
 
     private byte[] ObjToByte(_IP_HEADER header, int length){
-        byte[] buf = new byte[length + IPHEADERSIZE] ;
+        byte[] buf = new byte[length + header.IPHEADERSIZE] ;
         System.arraycopy(header.ipDSTAddr, 0, buf, header.dstIndex, header.dstSize);
         System.arraycopy(header.ipSRCAddr, 0, buf, header.dstIndex+header.dstSize, header.srcSize);
 //        System.arraycopy(header.ipDATA, 0, buf, 0+header.srcSize +header.dstSize, length);
