@@ -126,7 +126,7 @@ public class EthernetLayer implements BaseLayer {
     }
 
     public byte[] RemoveCappHeader(byte[] input, int length) {
-        int rellen = length + IpHeader_size;
+        int rellen = length - enet_frame.Header_Size; //헤더크기만큼 줄이고 값 옮겨줌
         byte[] input2 = new byte[rellen];
         System.out.println(rellen);
         for (int i = 0; i < rellen; i++) {
@@ -173,7 +173,7 @@ public class EthernetLayer implements BaseLayer {
     }
     private boolean IsItMine(byte[] input) {
         for (int i = 0; i < enet_frame.Address_Size; i++) {
-            if (enet_frame.enet_srcaddr.addr[i] == input[i]) //목적지이더넷주소가 자신의이더넷주소가아니면 false와 break
+            if (enet_frame.enet_srcaddr.addr[i] == input[i+enet_frame.Address_Size]) //목적지이더넷주소가 자신의이더넷주소가아니면 false와 break
                 continue;
             else {
                 System.out.println("It isn't Mine");
@@ -220,15 +220,16 @@ public class EthernetLayer implements BaseLayer {
         } else {//내 패킷이 아닐 경우
             Broadcast = IsItBroad(input);
             if (Broadcast == false) {
-                Mine = IsItMine(input);
-                if (Mine == false) { //목적지 이더넷 주소가 내 주소가 아닐때
-                    return false;
-                }
+//                Mine = IsItMine(input);
+//                if (Mine == true) { //목적지 이더넷 주소가 내 주소가 아닐때
+//                    return false;
+//                }
+                return false;
             }
         }
         byte data[];
         data = RemoveCappHeader(input, input.length);
-        this.GetUpperLayer(1).Receive(data); //0번이 IP, 1번이 ARP라고 생각해서 ARP로 올리기 위해서 1로 설정함.
+        this.GetUpperLayer(0).Receive(data); //0번이 IP, 1번이 ARP라고 생각해서 ARP로 올리기 위해서 1로 설정함.
         return true;
 
     }
