@@ -53,7 +53,8 @@ public class IPLayer implements BaseLayer {
         byte[] buf = new byte[length + header.IPHEADERSIZE] ;
         System.arraycopy(header.ipDSTAddr, 0, buf, header.dstIndex, header.dstSize);
         System.arraycopy(header.ipSRCAddr, 0, buf, header.dstIndex+header.dstSize, header.srcSize);
-//        System.arraycopy(header.ipDATA, 0, buf, 0+header.srcSize +header.dstSize, length);
+        if(length != 0)
+            System.arraycopy(header.ipDATA, 0, buf, header.IPHEADERSIZE, length);
         return buf;
     }
 
@@ -76,9 +77,9 @@ public class IPLayer implements BaseLayer {
         ipHeader.ipDSTAddr = int2byte;
     }
 
-    public boolean Send(String dstIpAddr){
-        setDstIPAddress(dstIpAddr);
-        byte[] buf = ObjToByte(ipHeader,0);
+    public boolean Send(byte[] input, int lenth){
+        ipHeader.ipDATA = input;
+        byte[] buf = ObjToByte(ipHeader,lenth);
         int bufSize=buf.length;
         if (((ARPLayer) this.GetUnderLayer(0)).Send(buf,bufSize))
             return true;
