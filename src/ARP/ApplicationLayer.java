@@ -41,7 +41,7 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
 
    private JTextField MAC_Address;
    static JComboBox<PcapIf> addr_comboBox;
-   JButton IP_Setting_Btn = new JButton("Setting");
+   JButton IP_Setting_Btn;
    JPanel contentPane;
    static List ARP_CacheList;
    JButton ARPCache_ItemDelBtn;
@@ -71,21 +71,7 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
       m_LayerMgr.AddLayer(new ARPLayer("ARP"));
       m_LayerMgr.AddLayer(new ApplicationLayer("GUI"));
       m_LayerMgr.AddLayer(new TCPLayer("TCP"));
-      // m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *IP ( * TCP ( *ChatApp ( *GUI ) ) ) ) ( *ARP ( *IP ( *TCP ( *GUI ) ) ) ) )");
-//      m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ARP ( *IP ( *TCP ( *GUI ) ) ) ) ( *IP ( *TCP ( *GUI ) ) ) )");
-//            m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ARP ( *IP ( *TCP ( *GUI ) ) ) ) )");
-//            m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *IP ( *TCP ( *GUI ) ) ) )");
-//      m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ChatApp ( *GUI ) *FileApp ( *GUI ) ) ) ");
-
-//      m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ARP ( -IP ) *IP ( *TCP ( *GUI ) ) ) )");
       m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ARP ( *IP ( *TCP ( *GUI ) ) ) *IP ( *TCP ( *GUI ) ) ) )");
-
-//      NI ( *Ethernet ( *ARP ( *IP ( *TCP ( *GUI ) ) ) *IP ( *TCP ( *GUI ) ) ) )
-
-//      m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ARP ( *IP ( +TCP ( -IP *Chat ( *GUI ) *File ( *GUI ) *APP ) ) ) *IP ( +TCP ( -IP *Chat ( *GUI ) *File ( *GUI ) *APP ) ) ) ) ");
-//      m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ARP ( *IP ( *TCP ( *GUI ) ) ) ) )");
-
-//      NI ( *Ethernet ( *ARP ( IP ( +TCP ( -IP *GUI ) ) ) *IP ( +TCP ( -IP *GUI ) ) ) )
 
       EventQueue.invokeLater(new Runnable() {//GUI구성
          public void run() {
@@ -309,8 +295,9 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
       Address_Panel.add(addr_comboBox);
       addr_comboBox.addActionListener(new setAddressListener());
 
-      JButton IP_Setting_Btn = new JButton("Setting");
+      IP_Setting_Btn = new JButton("Setting");
       IP_Setting_Btn.setBounds(211, 155, 91, 23);
+      IP_Setting_Btn.addActionListener(new setAddressListener());
       Address_Panel.add(IP_Setting_Btn);
    }
 
@@ -353,7 +340,14 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
             }
          }
          if(e.getSource() == IP_Setting_Btn) {
-            arplayer.setIpAddress(IP_Address.getText().getBytes());
+            String[] IP_addr = IP_Address.getText().split("\\.");
+            byte[] str2int = new byte[IP_addr.length];
+            for (int i = 0; i < IP_addr.length; i++) {
+               for(int j = 0; j < IP_addr[i].getBytes().length; j++)
+                  str2int[i] = IP_addr[i].getBytes()[j];
+            }
+            iplayer.setSrcIPAddress(str2int);
+            arplayer.setIpAddress(str2int);
          }
          if(e.getSource() == ARPCache_ItemDelBtn) {
             //아이템 삭제
