@@ -41,7 +41,7 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
 
    private JTextField MAC_Address;
    static JComboBox<PcapIf> addr_comboBox;
-   JButton IP_Setting_Btn = new JButton("Setting");
+   JButton IP_Setting_Btn;
    JPanel contentPane;
    static List ARP_CacheList;
    JButton ARPCache_ItemDelBtn;
@@ -295,8 +295,9 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
       Address_Panel.add(addr_comboBox);
       addr_comboBox.addActionListener(new setAddressListener());
 
-      JButton IP_Setting_Btn = new JButton("Setting");
+      IP_Setting_Btn = new JButton("Setting");
       IP_Setting_Btn.setBounds(211, 155, 91, 23);
+      IP_Setting_Btn.addActionListener(new setAddressListener());
       Address_Panel.add(IP_Setting_Btn);
    }
 
