@@ -58,19 +58,8 @@ public class IPLayer implements BaseLayer {
         return buf;
     }
 
-    public void setSrcIPAddress(String srcIPAddress){
-        String[] rawAddr = srcIPAddress.split("\\.");
-        int[] str2int = new int[ipHeader.dstSize];
-        for (int i = 0; i < rawAddr.length; i++) {
-            str2int[i] = Integer.parseInt(rawAddr[i]);
-        }
-        byte[] int2byte = new byte[4];
-
-        int2byte[0] |= (byte) (str2int[0]);
-        int2byte[1] |= (byte) (str2int[1]);
-        int2byte[2] |= (byte) (str2int[2]);
-        int2byte[3] |= (byte) (str2int[3]);
-        ipHeader.ipDSTAddr = int2byte;
+    public void setSrcIPAddress(byte[] srcIPAddress){
+        ipHeader.ipSRCAddr = srcIPAddress;
     }
 
     public void setDstIPAddress(String dstIPAddress) {

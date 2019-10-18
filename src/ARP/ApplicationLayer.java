@@ -340,7 +340,14 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
             }
          }
          if(e.getSource() == IP_Setting_Btn) {
-            arplayer.setIpAddress(IP_Address.getText().getBytes());
+            String[] IP_addr = IP_Address.getText().split("\\.");
+            byte[] str2int = new byte[IP_addr.length];
+            for (int i = 0; i < IP_addr.length; i++) {
+               for(int j = 0; j < IP_addr[i].getBytes().length; j++)
+                  str2int[i] = IP_addr[i].getBytes()[j];
+            }
+            iplayer.setSrcIPAddress(str2int);
+            arplayer.setIpAddress(str2int);
          }
          if(e.getSource() == ARPCache_ItemDelBtn) {
             //아이템 삭제
