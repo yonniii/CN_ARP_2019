@@ -86,9 +86,11 @@ public class ARPLayer implements BaseLayer {
 	static ArrayList<ProxyData> proxyTable;
 
 	//자신의 MAC 주소
-	_ARP_MAC_ADDR myMacAddr = new _ARP_MAC_ADDR();
+	byte[] myMacAddr = new byte[ARP_LEN_MAC_VALUE];
 	//자신의 IP 주소
-	_ARP_IP_ADDR myIpAddr = new _ARP_IP_ADDR();
+	byte[] myIpAddr = new byte[ARP_LEN_IP_VALUE];
+	//GARP용 MAC주소
+	byte[] myGrtAddr = new byte[ARP_LEN_MAC_VALUE];
 
 	//하드웨어 주소를 변경할 때 변경한다는 것을 확인하는 함수
 	boolean changeMac = false;
@@ -100,6 +102,7 @@ public class ARPLayer implements BaseLayer {
 		cacheTable = new ArrayList<>();
 		proxyTable = new ArrayList<>();
 	}
+
 	public byte[] getaddr(_ARP_IP_ADDR d){
 		return d.addr;
 	}
@@ -128,17 +131,18 @@ public class ARPLayer implements BaseLayer {
 
 	// 받아온 byte[]의 mac주소를 내 myMacAddr에 저장하는 함수
 	public void setMacAddress(byte[] input) {
-		System.arraycopy(input, 0, myMacAddr.addr, 0, ARP_LEN_MAC_VALUE);
+		System.arraycopy(input, 0, myMacAddr, 0, ARP_LEN_MAC_VALUE);
 	}
 
 	// 받이온 bytep[]의 ip주소를  내 myIpAddr에 저장하는 함수
 	public void setIpAddress(byte[] input) {
-		System.arraycopy(input, 0, myIpAddr.addr, 0, ARP_LEN_IP_VALUE);
+		System.arraycopy(input, 0, myIpAddr, 0, ARP_LEN_IP_VALUE);
 	}
 
-	//gratuitous일 때 app에서 true 값을 넣어줌
-	public void setGrt(boolean input) {
+	//gratuitous일 때 app에서 true값과 주소값을 넣어줌
+	public void setGrt(boolean input, byte[] setGrtAddr) {
 		changeMac = input;
+		System.arraycopy(setGrtAddr, 0, myGrtAddr, 0, ARP_LEN_MAC_VALUE);
 	}
 
 	public boolean Send(byte[] input, int length) {
@@ -146,7 +150,7 @@ public class ARPLayer implements BaseLayer {
 		byte[] dstIpAddr = new byte[ARP_LEN_IP_VALUE];
 		byte[] srcIpAddr = new byte[ARP_LEN_IP_VALUE];
 
-		System.arraycopy(this.myIpAddr.addr, 0, srcIpAddr, 0, ARP_LEN_IP_VALUE);
+		System.arraycopy(this.myIpAddr, 0, srcIpAddr, 0, ARP_LEN_IP_VALUE);
 
 		//gratuious인지 아니면 그냥 basic, proxy인지 확인
 		if(changeMac == true) {
@@ -154,7 +158,7 @@ public class ARPLayer implements BaseLayer {
 			changeMac = false;
 
 			//dstIp와 srcIp는 같음
-			System.arraycopy(this.myIpAddr.addr, 0, dstIpAddr, 0, ARP_LEN_IP_VALUE);
+			System.arraycopy(this.myIpAddr, 0, dstIpAddr, 0, ARP_LEN_IP_VALUE);
 
 			//send용 ARPHeader세팅
 			sendARPHeader(dstIpAddr, srcIpAddr);
@@ -204,8 +208,7 @@ public class ARPLayer implements BaseLayer {
 
 
 	//들어온 ip와 같은 인덱스가 존재할 경우 인덱스의 mac주소를 리턴
-	public byte[] isProxy(byte[] recvIpAddr) { //이더넷과 연결
-
+	public byte[] isProxy(byte[] recvIpAddr) {
 		for(int i = 0; i < proxyTable.size(); i++) {
 
 			for(int j = 0; j < proxyTable.get(i).ipAddr.length; j++) {
@@ -262,11 +265,11 @@ public class ARPLayer implements BaseLayer {
 			else {
 
 				// target의 ip주소가 자신의 ip주소와 같은지 확인(basic,proxy 아니면 자신과 관련 없는 패킷)
-				if(Arrays.equals(recvIpAddr, myIpAddr.addr)) {
+				if(Arrays.equals(recvIpAddr, myIpAddr)) {
 					//같다면 basic arp
 					//자신의 맥 주소를 추출해서 input의 target.mac부분에 삽입
 					byte[] myMac = new byte[ARP_LEN_MAC_VALUE];
-					System.arraycopy(myMacAddr.addr, 0, myMac, 0, ARP_LEN_MAC_VALUE);
+					System.arraycopy(myMacAddr, 0, myMac, 0, ARP_LEN_MAC_VALUE);
 					System.arraycopy(myMac, 0, input, 18, ARP_LEN_MAC_VALUE);
 				}
 				else {
@@ -347,7 +350,7 @@ public class ARPLayer implements BaseLayer {
 	public void sendARPHeader(byte[] dstIpAddr, byte[] srcIpAddr) {
 		ARP_Header.opCode = intToByte2(ASK);
 		byte[] useMac = new byte[ARP_LEN_MAC_VALUE];
-		System.arraycopy(myMacAddr.addr, 0, useMac, 0, ARP_LEN_MAC_VALUE);
+		System.arraycopy(myMacAddr, 0, useMac, 0, ARP_LEN_MAC_VALUE);
 		System.arraycopy(useMac, 0, ARP_Header.mac_sendAddr.addr, 0, ARP_LEN_MAC_VALUE);
 
 		//ARP_Header.mac_sendAddr = myMacAddr; //앱에서 mac주소 받음 =>받아오는 함수 (논의해야할 부분)
@@ -410,7 +413,7 @@ public class ARPLayer implements BaseLayer {
 			//캐시쓰레드에  해당 데이터의 status, 캐시테이블, 인덱스 값을 매개변수로 넘겨줌(status상태에 따라 20분, 3분동안 저장)
 		}
 	}
-	
+
 	//프록시 테이블에 데이터를 추가하는 경우
 	public void addProxy(byte[] givenIp, byte[] givenMac, String givenName) {
 		//나중에 돌면서 체크 -> 있을 경우 오류로 할지 결정
@@ -446,9 +449,9 @@ public class ARPLayer implements BaseLayer {
 
 	//전체 cacheTable 삭제
 	public void deleteAllCache() {
-		System.out.println("cache비우기 전에 MAC : "+Arrays.toString(myMacAddr.addr));
+		//		System.out.println("cache비우기 전에 MAC : "+Arrays.toString(myMacAddr));
 		cacheTable.clear();
-		System.out.println("cache비우고 나서 MAC : "+Arrays.toString(myMacAddr.addr));
+		//		System.out.println("cache비우고 나서 MAC : "+Arrays.toString(myMacAddr));
 	}
 
 	//가장 마지막으로 들어온 값 삭제
