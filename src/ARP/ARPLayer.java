@@ -164,6 +164,10 @@ public class ARPLayer implements BaseLayer {
 		if(dstIndex != -1){
 			//그냥 dst 찾아가지고 ethernet에 send를 보낸다.
 			System.arraycopy(cacheTable.get(dstIndex).macAddr, 0, dstMacAddr, 0, ARP_LEN_MAC_VALUE);
+			
+			//찾으면 ethernet에 박아줌
+			((EthernetLayer)this.GetUnderLayer(0)).setDstAddr(dstMacAddr);
+			
 			//이더넷 샌드로 보냄
 			((EthernetLayer)this.GetUnderLayer(0)).ChatFileSend(input, input.length);
 			
@@ -183,6 +187,10 @@ public class ARPLayer implements BaseLayer {
 					
 					if(dstIndex != -1) {
 						System.arraycopy(cacheTable.get(index).macAddr, 0, dstMacAddr, 0, ARP_LEN_MAC_VALUE);
+						
+						//찾으면 ethernet에 박아줌
+						((EthernetLayer)this.GetUnderLayer(0)).setDstAddr(dstMacAddr);
+						
 						//이더넷 샌드로 보냄
 						((EthernetLayer)this.GetUnderLayer(0)).ChatFileSend(input, input.length);
 						break;
