@@ -147,7 +147,65 @@ public class ARPLayer implements BaseLayer {
 		changeMac = input;
 		System.arraycopy(setGrtAddr, 0, myGrtAddr, 0, ARP_LEN_MAC_VALUE);
 	}
+	
+	public boolean chatSend(byte[] input, int length) {
+		//dstIP의 주소 추출
+		byte[] dstIpAddr = new byte[ARP_LEN_IP_VALUE];
 
+		//arraycopy로 dst ip주소 추출
+		System.arraycopy(input, 12, dstIpAddr, 0, ARP_LEN_IP_VALUE);
+		
+		//dstIp에 해당하는 MAC (없으면 null)
+		byte[] dstMacAddr = new byte[ARP_LEN_MAC_VALUE];
+		
+		//dst용 반환 index값
+		int dstIndex = searchCacheTable(dstIpAddr);
+		
+		if(dstIndex != -1){
+			//그냥 dst 찾아가지고 ethernet에 send를 보낸다.
+			System.arraycopy(cacheTable.get(dstIndex).macAddr, 0, dstMacAddr, 0, ARP_LEN_MAC_VALUE);
+			//이더넷 샌드로 보냄
+			((EthernetLayer)this.GetUpperLayer(0)).ChatFileSend(input, input.length);
+			
+		}
+		else {
+			//테이블에 없을 경우
+			Send(input, input.length);
+			
+			new Thread(() -> { 
+				
+				while(true) {
+					//캐쉬 테이블 검색 -> 없으면 그냥 반복문 재생...
+					//있으면 dst박아주고 send한 다음 return...
+					
+					int index = searchCacheTable(dstIpAddr);
+					
+					if(dstIndex != -1) {
+						System.arraycopy(cacheTable.get(index).macAddr, 0, dstMacAddr, 0, ARP_LEN_MAC_VALUE);
+						//이더넷 샌드로 보냄
+						((EthernetLayer)this.GetUpperLayer(0)).ChatFileSend(input, input.length);
+						break;
+					}
+				}
+			}).start();
+			
+			return true;	
+		}
+		
+		return false;
+	}
+	
+	public int searchCacheTable(byte[] inputIp) {
+		
+		for(int i = 0; i < cacheTable.size(); i++) {
+			if(Arrays.equals(cacheTable.get(i).ipAddr, inputIp)) {
+				return i;
+			}
+		}
+		
+		return -1;
+	}
+	
 	public boolean Send(byte[] input, int length) {
 
 		byte[] dstIpAddr = new byte[ARP_LEN_IP_VALUE];
