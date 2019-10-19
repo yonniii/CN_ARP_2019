@@ -421,7 +421,6 @@ public class ARPLayer implements BaseLayer {
 			}
 		}
 		if(check != 1) { //테이블에 매개변수의 ip가 없는 경우
-			//incomplete이 들어오는 부분은 어디인가
 			cacheTable.add(givenData);
 			cacheThread(givenData.status, cacheTable,  cacheTable.size()-1);   
 			//캐시쓰레드에  해당 데이터의 status, 캐시테이블, 인덱스 값을 매개변수로 넘겨줌(status상태에 따라 20분, 3분동안 저장)
