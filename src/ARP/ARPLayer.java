@@ -85,8 +85,8 @@ public class ARPLayer implements BaseLayer {
 	_ARP_FRAME ARP_Header = new _ARP_FRAME();
 
 	//테이블
-	static ArrayList<CacheData> cacheTable;
-	static ArrayList<ProxyData> proxyTable;
+	ArrayList<CacheData> cacheTable;
+	ArrayList<ProxyData> proxyTable;
 
 	//자신의 MAC 주소
 	byte[] myMacAddr = new byte[ARP_LEN_MAC_VALUE];
@@ -169,6 +169,7 @@ public class ARPLayer implements BaseLayer {
 			
 		}
 		else {
+			
 			//테이블에 없을 경우
 			Send(input, input.length);
 			
