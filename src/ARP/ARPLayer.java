@@ -38,15 +38,6 @@ public class ARPLayer implements BaseLayer {
 			this.addr[4] = (byte) 0x00;
 			this.addr[5] = (byte) 0x00;
 		}
-
-		public boolean equals(_ARP_MAC_ADDR input) {
-			for(int i=0; i<6; i++) {
-				if(this.addr[i]!= input.addr[i])
-					return false;
-			}
-			return true;//끝까지 돌았을때 다른게 없으면 true
-		}
-
 	}
 
 	private class _ARP_IP_ADDR {
@@ -59,15 +50,6 @@ public class ARPLayer implements BaseLayer {
 			this.addr[2] = (byte) 0x00;
 			this.addr[3] = (byte) 0x00;
 		}
-
-		public boolean equals(_ARP_IP_ADDR input) {
-			for(int i=0; i<4; i++) {
-				if(this.addr[i]!= input.addr[i])
-					return false;
-			}
-			return true;//끝까지 돌았을때 다른게 없으면 true
-		}
-
 	}
 
 	private class _ARP_FRAME {
