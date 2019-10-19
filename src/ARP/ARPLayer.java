@@ -348,15 +348,30 @@ public class ARPLayer implements BaseLayer {
 
 	//헤더를 추가하는 부분
 	public void sendARPHeader(byte[] dstIpAddr, byte[] srcIpAddr) {
+		//op코드 1로 설정
 		ARP_Header.opCode = intToByte2(ASK);
-		byte[] useMac = new byte[ARP_LEN_MAC_VALUE];
-		System.arraycopy(myMacAddr, 0, useMac, 0, ARP_LEN_MAC_VALUE);
-		System.arraycopy(useMac, 0, ARP_Header.mac_sendAddr.addr, 0, ARP_LEN_MAC_VALUE);
-
-		//ARP_Header.mac_sendAddr = myMacAddr; //앱에서 mac주소 받음 =>받아오는 함수 (논의해야할 부분)
+		
+		//헤더에 설정할 sender의 맥주소용 변수
+		byte[] useMyMac = new byte[ARP_LEN_MAC_VALUE];
+		
+		//이때 GARP인지 그냥 ARP인지 확인
+		if(Arrays.equals(srcIpAddr, dstIpAddr)) {
+			//같으면 GARP
+			//GARP변수에서 MAC값을 가져옴
+			System.arraycopy(myGrtAddr, 0, useMyMac, 0, ARP_LEN_MAC_VALUE);
+		}
+		else {
+			//다르면 PROXY or BASIC
+			//내 MAC주소를 가져옴
+			System.arraycopy(myMacAddr, 0, useMyMac, 0, ARP_LEN_MAC_VALUE);
+		}
+		
+		//useMyMac의 값을 헤더에 삽입
+		System.arraycopy(useMyMac, 0, ARP_Header.mac_sendAddr.addr, 0, ARP_LEN_MAC_VALUE);
+		
+		//나머지 IP값을 설정
 		System.arraycopy(srcIpAddr, 0, ARP_Header.ip_sendAddr.addr, 0, ARP_LEN_IP_VALUE);
 		System.arraycopy(dstIpAddr, 0, ARP_Header.ip_recvAddr.addr, 0, ARP_LEN_IP_VALUE);
-		//recv의 mac 주소는 이미 reset에서 0으로 설정
 
 	}
 
