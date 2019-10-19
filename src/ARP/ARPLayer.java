@@ -429,13 +429,9 @@ public class ARPLayer implements BaseLayer {
 
 	//프록시 테이블에 데이터를 추가하는 경우
 	public void addProxy(byte[] givenIp, byte[] givenMac, String givenName) {
-		//나중에 돌면서 체크 -> 있을 경우 오류로 할지 결정
-		byte[] ip = new byte[ARP_LEN_IP_VALUE];
-		byte[] mac = new byte[ARP_LEN_MAC_VALUE];
-		System.arraycopy(givenIp, 0, ip, 0, ARP_LEN_IP_VALUE);
-		System.arraycopy(givenMac, 0, mac, 0, ARP_LEN_MAC_VALUE);
-
-		proxyTable.add(new ProxyData(mac, ip, givenName));
+		
+		//ProxyTable에 추가
+		proxyTable.add(new ProxyData(givenMac, givenIp, givenName));
 
 	}
 
