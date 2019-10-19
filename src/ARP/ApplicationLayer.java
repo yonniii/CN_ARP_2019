@@ -351,32 +351,46 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
             //send버튼 누르면 ip주소 mac주소 incomplete띄우기, arplayer에서 얻어오기(thread확인)
 
             if(e.getSource() == ARPCache_IPSendBtn) {
-                System.out.println("이것은 send");
-                iplayer.setDstIPAddress(ARPCache_IPAddress.getText());
-                tcplayer.setDstPort(8888);
-                tcplayer.setSrcPort(8888);
-                byte[] no = null;
-                byte[] macAddr_byte = macAddr2byte(MAC_Address.getText());
-                arplayer.setMacAddress(macAddr_byte);
-                ethernetlayer.setHeaderMac(macAddr_byte);
-                for(int i = 0; i < arplayer.cacheTable.size(); i++) {
-                    if(arplayer.cacheTable.get(i).getIpAddr() == ARPCache_IPAddress.getText().getBytes()) {
-                        if(arplayer.cacheTable.get(i).getStatus() == 1) {
-                            JOptionPane.showMessageDialog(null, "이미 MAC 주소가 존재합니다.", "ERROR", JOptionPane.ERROR_MESSAGE);
-                            ARPCache_IPAddress.setText("");
+
+                new Thread( ()->{
+
+                    System.out.println("이것은 send");
+                    iplayer.setDstIPAddress(ARPCache_IPAddress.getText());
+                    tcplayer.setDstPort(8888);
+                    tcplayer.setSrcPort(8888);
+                    byte[] no = null;
+                    //   byte[] macAddr_byte = macAddr2byte(MAC_Address.getText());
+                    // arplayer.setMacAddress(macAddr_byte);
+//                ethernetlayer.setHeaderMac(macAddr_byte);
+                    for (int i = 0; i < ((ARPLayer)m_LayerMgr.GetLayer("ARP")).cacheTable.size(); i++) {
+                        String[] ARPIP_addr = ARPCache_IPAddress.getText().split("\\.");
+                        byte[] str2int = new byte[4];
+                        for (int j = 0; j < 4; j++) {
+                            str2int[j] = (byte) Integer.parseInt(ARPIP_addr[j]);
+                        }
+                        if (Arrays.equals(((ARPLayer)m_LayerMgr.GetLayer("ARP")).cacheTable.get(i).getIpAddr(), str2int)) {
+                            System.out.println("동일한 ip");
+                            if (((ARPLayer)m_LayerMgr.GetLayer("ARP")).cacheTable.get(i).getStatus() == 1) {
+                                System.out.println("이미 MAC주소 존재");
+                                JOptionPane.showMessageDialog(null, "이미 MAC 주소가 존재합니다.", "ERROR", JOptionPane.ERROR_MESSAGE);
+                            }
                         }
                     }
-                }
 
-                tcplayer.Send(no);
+                    tcplayer.Send(no);
+                    ARPCache_IPAddress.setText("");
+                }).start();
             }
             if(e.getSource() == IP_Setting_Btn) {
                 String[] IP_addr = IP_Address.getText().split("\\.");
                 byte[] str2int = new byte[4];
                 for (int i = 0; i < 4; i++) {
                     str2int[i] = (byte) Integer.parseInt(IP_addr[i]);
-                    System.out.println(str2int[i]);
+                    //System.out.println(str2int[i]);
                 }
+                byte[] macAddr_byte = macAddr2byte(MAC_Address.getText());
+                arplayer.setMacAddress(macAddr_byte);
+                ethernetlayer.setHeaderMac(macAddr_byte);
                 iplayer.setSrcIPAddress(str2int);
                 arplayer.setIpAddress(str2int);
             }
@@ -392,15 +406,19 @@ public class ApplicationLayer extends JFrame implements BaseLayer {
                 String device = ProxyARP_Device.getText();
                 String ip = ProxyARP_IPAddress.getText();
                 String mac = ProxyARP_MacAddress.getText();
-                arplayer.addProxy(ip.getBytes(), mac.getBytes(), device);
-                String ipAddr = ip;
-                String macAddr = mac;
-                ProxyARP_List.addItem(device+"  "+ipAddr+"  "+macAddr);
+                String[] Proxy_IP_addr = ProxyARP_IPAddress.getText().split("\\.");
+                byte[] str2int = new byte[4];
+                for (int j = 0; j < 4; j++) {
+                    str2int[j] = (byte) Integer.parseInt(Proxy_IP_addr[j]);
+                }
+                arplayer.addProxy(str2int, macAddr2byte(mac), device);
+                ProxyARP_List.addItem("Interface0  "+ip+"  "+mac);
 
             }
             if(e.getSource() == ProxyARP_DelBtn) {
                 //테이블삭제(ARP에서)
                 arplayer.deleteProxy();
+                ProxyARP_List.removeAll();
             }
             if(e.getSource() == GratARP_SendBtn) {
                 //change_mac(ARP에서 한 것 불러와야함)

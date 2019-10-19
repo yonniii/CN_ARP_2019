@@ -1,6 +1,7 @@
 package ARP;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ARPLayer implements BaseLayer {
 	public int nUpperLayerCount = 0;
@@ -121,8 +122,8 @@ public class ARPLayer implements BaseLayer {
 	//헤더 초기화
 	public void ResetHeader() {
 
-		ARP_Header.macType= intToByte4(1);
-		ARP_Header.ipType = intToByte4(0x0800);
+		ARP_Header.macType= intToByte2(1);
+		ARP_Header.ipType = intToByte2(0x0800);
 		ARP_Header.lenMacAddr[0] = (byte)ARP_LEN_MAC_VALUE;
 		ARP_Header.lenIpAddr[0] = (byte)ARP_LEN_IP_VALUE;
 
@@ -157,8 +158,8 @@ public class ARPLayer implements BaseLayer {
 
 	public boolean Send(byte[] input, int length) {
 
-		byte[] dstIpAddr = new byte[ARP_LEN_MAC_VALUE];
-		byte[] srcIpAddr = new byte[ARP_LEN_MAC_VALUE];
+		byte[] dstIpAddr = new byte[ARP_LEN_IP_VALUE];
+		byte[] srcIpAddr = new byte[ARP_LEN_IP_VALUE];
 
 		System.arraycopy(this.myIpAddr.addr, 0, srcIpAddr, 0, ARP_LEN_IP_VALUE);
 
@@ -223,14 +224,12 @@ public class ARPLayer implements BaseLayer {
 		for(int i = 0; i < proxyTable.size(); i++) {
 
 			for(int j = 0; j < proxyTable.get(i).ipAddr.length; j++) {
-				if( proxyTable.get(i).ipAddr[j] != recvIpAddr[j]) {
-					break;
+				if(Arrays.equals(proxyTable.get(i).ipAddr, recvIpAddr)) {
+					return proxyTable.get(i).macAddr;
 				}
-				return proxyTable.get(i).macAddr;
 			}
 		}
 		return null;
-
 	}
 
 	public boolean Receive(byte[] input) {
@@ -238,11 +237,11 @@ public class ARPLayer implements BaseLayer {
 
 		//opCode가 1인 경우
 		//gratuitous인지 proxy인지 basic인지 버리는 것인지 결정
-		
+
 		//opCode가 2인 경우
 		//(원하는 정보를 얻은 것이므로 원하는 정보를 추출하여 해쉬 테이블을 업데이트 함)
 		// 1. sender부분의 mac주소가 우리가 알고 싶었던 주소 -> 추출
-		// 2. 주소를 캐시 테이블에 업데이트 
+		// 2. 주소를 캐시 테이블에 업데이트
 
 		//먼저 input에서 opCode인 부분을 int 형태로 바꿈
 		int opCode = byte2ToInt(input[6], input[7]);
@@ -250,7 +249,7 @@ public class ARPLayer implements BaseLayer {
 		// 1인지 2인지 확인
 		if(opCode == ASK) {
 			// 1인 경우
-			
+
 			//gratuitous인 경우인지 확인
 
 			//target ip 주소 추출
@@ -262,7 +261,7 @@ public class ARPLayer implements BaseLayer {
 			System.arraycopy(input, 14, sendIpAddr, 0, ARP_LEN_IP_VALUE);
 
 			//먼저 sender의 ip와 target의 ip가 같은지 확인
-			if(sendIpAddr.equals(recvIpAddr)) {
+			if(Arrays.equals(sendIpAddr, recvIpAddr)) {
 				//gratuitous인 경우
 
 				//sender의 맥주소 추출
@@ -276,18 +275,20 @@ public class ARPLayer implements BaseLayer {
 			}
 			//basic, proxy 또는 자신과 관련없는 패킷인 경우
 			else {
-				
+
 				// target의 ip주소가 자신의 ip주소와 같은지 확인(basic,proxy 아니면 자신과 관련 없는 패킷)
-				if(recvIpAddr.equals(myIpAddr)) {
+				if(Arrays.equals(recvIpAddr, myIpAddr.addr)) {
 					//같다면 basic arp
 					//자신의 맥 주소를 추출해서 input의 target.mac부분에 삽입
-					System.arraycopy(myMacAddr.addr, 0, input, 18, ARP_LEN_MAC_VALUE);
+					byte[] myMac = new byte[ARP_LEN_MAC_VALUE];
+					System.arraycopy(myMacAddr.addr, 0, myMac, 0, ARP_LEN_MAC_VALUE);
+					System.arraycopy(myMac, 0, input, 18, ARP_LEN_MAC_VALUE);
 				}
 				else {
 					//다를 경우 1. proxy, 2. 그냥 잘못 온 경우
 
 					//추출한 주소를 가지고 proxy용 recvMac을 구함 (없으면 null)
-					byte[] proxyRecvMacAddr = (byte[]) isProxy(recvIpAddr);
+					byte[] proxyRecvMacAddr = isProxy(recvIpAddr);
 
 					if(proxyRecvMacAddr != null) { //Proxy
 						//원래 target.mac의 위치에 넣어줌
@@ -360,7 +361,11 @@ public class ARPLayer implements BaseLayer {
 	//헤더를 추가하는 부분
 	public void sendARPHeader(byte[] dstIpAddr, byte[] srcIpAddr) {
 		ARP_Header.opCode = intToByte2(ASK);
-		ARP_Header.mac_sendAddr = myMacAddr; //앱에서 mac주소 받음 =>받아오는 함수 (논의해야할 부분)
+		byte[] useMac = new byte[ARP_LEN_MAC_VALUE];
+		System.arraycopy(myMacAddr.addr, 0, useMac, 0, ARP_LEN_MAC_VALUE);
+		System.arraycopy(useMac, 0, ARP_Header.mac_sendAddr.addr, 0, ARP_LEN_MAC_VALUE);
+
+		//ARP_Header.mac_sendAddr = myMacAddr; //앱에서 mac주소 받음 =>받아오는 함수 (논의해야할 부분)
 		System.arraycopy(srcIpAddr, 0, ARP_Header.ip_sendAddr.addr, 0, ARP_LEN_IP_VALUE);
 		System.arraycopy(dstIpAddr, 0, ARP_Header.ip_recvAddr.addr, 0, ARP_LEN_IP_VALUE);
 		//recv의 mac 주소는 이미 reset에서 0으로 설정
@@ -406,7 +411,7 @@ public class ARPLayer implements BaseLayer {
 		//Ip addr을 기준으로 찾아서 추가
 		int check = 0;
 		for(int i = 0; i < cacheTable.size(); i++) {
-			if(cacheTable.get(i).getIpAddr().equals(givenData.getIpAddr())) {
+			if(Arrays.equals(cacheTable.get(i).getIpAddr(),givenData.getIpAddr())) {
 				check = 1; //이미 있는 경우
 				//오류 (어떻게 오류를 표시해야할지 생각)
 				return;
@@ -422,7 +427,7 @@ public class ARPLayer implements BaseLayer {
 		byte[] ip = new byte[ARP_LEN_IP_VALUE];
 		byte[] mac = new byte[ARP_LEN_MAC_VALUE];
 		System.arraycopy(givenIp, 0, ip, 0, ARP_LEN_IP_VALUE);
-		System.arraycopy(givenIp, 0, mac, 0, ARP_LEN_MAC_VALUE);
+		System.arraycopy(givenMac, 0, mac, 0, ARP_LEN_MAC_VALUE);
 
 		proxyTable.add(new ProxyData(mac, ip, givenName));
 
@@ -432,7 +437,7 @@ public class ARPLayer implements BaseLayer {
 	public void changeCache(CacheData givenData) {
 		//Ip addr을 기준으로 찾아서 추가
 		for(int i = 0; i < cacheTable.size(); i++) {
-			if(cacheTable.get(i).getIpAddr().equals(givenData.getIpAddr())) {
+			if(Arrays.equals(cacheTable.get(i).getIpAddr(),givenData.getIpAddr())) {
 
 				//값을 변경함
 				cacheTable.set(i, givenData);
@@ -449,7 +454,9 @@ public class ARPLayer implements BaseLayer {
 
 	//전체 cacheTable 삭제
 	public void deleteAllCache() {
+		System.out.println("cache비우기 전에 MAC : "+Arrays.toString(myMacAddr.addr));
 		cacheTable.clear();
+		System.out.println("cache비우고 나서 MAC : "+Arrays.toString(myMacAddr.addr));
 	}
 
 	//가장 마지막으로 들어온 값 삭제
