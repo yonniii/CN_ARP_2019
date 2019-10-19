@@ -458,7 +458,7 @@ public class ARPLayer implements BaseLayer {
 			cacheTimer.schedule(removeCache, 1200000);
 		else
 			//180000
-			cacheTimer.schedule(removeCache, 10000);
+			cacheTimer.schedule(removeCache, 180000);
 	}
 
 	//프록시 테이블에 데이터를 추가하는 경우
@@ -479,6 +479,8 @@ public class ARPLayer implements BaseLayer {
 				//값을 변경함
 				System.arraycopy(sendMac, 0, cacheTable.get(i).macAddr, 0, ARP_LEN_MAC_VALUE);
 				cacheTable.get(i).status = status;
+				
+				cacheThread(cacheTable.get(i).status, cacheTable.get(i).cacheCount); 
 
 				return;
 			}
