@@ -417,7 +417,6 @@ public class ARPLayer implements BaseLayer {
 		for(int i = 0; i < cacheTable.size(); i++) {
 			if(Arrays.equals(cacheTable.get(i).getIpAddr(),givenData.getIpAddr())) {
 				check = 1; //이미 있는 경우
-				//오류 (어떻게 오류를 표시해야할지 생각)
 				return;
 			}
 		}
