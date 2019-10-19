@@ -261,6 +261,8 @@ public class ARPLayer implements BaseLayer {
 
 				//추출한 sender의 맥과 아이피 주소를 추가
 				changeCache(sendMacAddr, sendIpAddr, COMPLETE);
+				
+				ResetHeader();
 
 				return true;
 			}
@@ -297,6 +299,8 @@ public class ARPLayer implements BaseLayer {
 
 						//sender의 정보는 다 있기 때문에 테이블에 추가
 						addCache(new CacheData(cacheCount, senderMac, senderIp, COMPLETE));
+						
+						ResetHeader();
 
 						return false;
 					}
@@ -344,6 +348,8 @@ public class ARPLayer implements BaseLayer {
 			changeCache(senderMac, senderIp, COMPLETE);
 
 		}
+		
+		ResetHeader();
 
 		return true;
 	}
