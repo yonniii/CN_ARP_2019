@@ -423,11 +423,31 @@ public class ARPLayer implements BaseLayer {
 		if(check != 1) { //테이블에 매개변수의 ip가 없는 경우
 			cacheTable.add(givenData);
 			
-			
-			
-			//cacheThread(givenData.status, cacheTable,  cacheTable.size()-1);   
-			//캐시쓰레드에  해당 데이터의 status, 캐시테이블, 인덱스 값을 매개변수로 넘겨줌(status상태에 따라 20분, 3분동안 저장)
+			//캐시쓰레드에  해당 데이터의 status, 이 데이터가 들어간 인덱스 값을 매개변수로 넘겨줌(status상태에 따라 20분, 3분동안 저장)
+			cacheThread(givenData.status, cacheTable.size()-1);   
 		}
+	}
+	
+	public void cacheThread(int status, int cacheIndex) {
+		Timer cacheTimer = new Timer();
+		
+		TimerTask removeCache = new TimerTask() {
+			@Override
+			public void run() {
+			
+				cacheTable.remove(cacheIndex);
+				
+			}
+		};
+		
+		//여기서 status 상태를 보고 data의 삭제 시간을 결정
+		//incomplete일 경우 3분, complete일 경우 20분 (1초에 1000)
+		if(status == COMPLETE)
+			//1200000
+			cacheTimer.schedule(removeCache, 1200000);
+		else
+			//180000
+			cacheTimer.schedule(removeCache, 10000);
 	}
 
 	//프록시 테이블에 데이터를 추가하는 경우
