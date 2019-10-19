@@ -24,6 +24,9 @@ public class ARPLayer implements BaseLayer {
 	final static int REQUEST = 2;
 	final static int INCOMPLETE = 0;
 	final static int COMPLETE = 1;
+	
+	//캐시테이블에 들어올 때 데이터 구분용 index
+	int cacheCount = 0;
 
 
 	private class _ARP_MAC_ADDR {
@@ -195,7 +198,7 @@ public class ARPLayer implements BaseLayer {
 			System.arraycopy(ARP_Header.ip_recvAddr.addr, 0, cacheIp, 0, ARP_LEN_IP_VALUE);
 
 			//캐쉬 테이블에 올리는 부분
-			addCache(new CacheData(cacheMac, cacheIp, INCOMPLETE));
+			addCache(new CacheData(cacheCount,cacheMac, cacheIp, INCOMPLETE));
 
 			//Ethernet.send를 호출하는 부분
 			((EthernetLayer)this.GetUnderLayer(0)).Send(sendData, sendData.length);
@@ -257,7 +260,7 @@ public class ARPLayer implements BaseLayer {
 				System.arraycopy(input, 8, sendMacAddr, 0, ARP_LEN_MAC_VALUE);
 
 				//추출한 sender의 맥과 아이피 주소를 추가
-				changeCache(new CacheData(sendMacAddr, sendIpAddr, COMPLETE));
+				changeCache(sendMacAddr, sendIpAddr, COMPLETE);
 
 				return true;
 			}
@@ -293,7 +296,7 @@ public class ARPLayer implements BaseLayer {
 						System.arraycopy(input, 14, senderIp, 0, ARP_LEN_IP_VALUE);
 
 						//sender의 정보는 다 있기 때문에 테이블에 추가
-						addCache(new CacheData(senderMac, senderIp, COMPLETE));
+						addCache(new CacheData(cacheCount, senderMac, senderIp, COMPLETE));
 
 						return false;
 					}
@@ -307,7 +310,7 @@ public class ARPLayer implements BaseLayer {
 				System.arraycopy(input, 14, senderIp, 0, ARP_LEN_IP_VALUE);
 
 				//sender의 정보는 다 있기 때문에 테이블에 추가
-				addCache(new CacheData(senderMac, senderIp, COMPLETE));
+				addCache(new CacheData(cacheCount, senderMac, senderIp, COMPLETE));
 
 				//sender의 정보가 이제는 receiver가 되고 receiver의 정보가 sender의 정보가 된다.
 				//헤더를 세팅해줌
@@ -338,7 +341,7 @@ public class ARPLayer implements BaseLayer {
 
 			//이제 주소를 캐쉬 테이블에 업데이트하는 함수 호출
 			//값을 변경 시킴 (mac 주소와 incomplete -> complete)
-			changeCache(new CacheData(senderMac, senderIp, COMPLETE));
+			changeCache(senderMac, senderIp, COMPLETE);
 
 		}
 
@@ -424,7 +427,10 @@ public class ARPLayer implements BaseLayer {
 			cacheTable.add(givenData);
 			
 			//캐시쓰레드에  해당 데이터의 status, 이 데이터가 들어간 인덱스 값을 매개변수로 넘겨줌(status상태에 따라 20분, 3분동안 저장)
-			cacheThread(givenData.status, cacheTable.size()-1);   
+			cacheThread(givenData.status, cacheCount);   
+			
+			//캐시 데이터 인덱스 증가
+			cacheCount++;
 		}
 	}
 	
@@ -434,9 +440,14 @@ public class ARPLayer implements BaseLayer {
 		TimerTask removeCache = new TimerTask() {
 			@Override
 			public void run() {
-			
-				cacheTable.remove(cacheIndex);
-				
+				//같은 cacheIndex를 가지는 데이터를 찾음
+				//있으면 삭제, 없으면 그냥 둠
+				for(int i = 0; i < cacheTable.size(); i++) {
+					if(cacheTable.get(i).cacheCount == cacheIndex) {
+						cacheTable.remove(i);
+						return;
+					}
+				}
 			}
 		};
 		
@@ -460,13 +471,14 @@ public class ARPLayer implements BaseLayer {
 
 
 	//캐쉬 테이블의 데이터를 complete로 변경
-	public void changeCache(CacheData givenData) {
+	public void changeCache(byte[] sendMac, byte[] sendIp, int status) {
 		//Ip addr을 기준으로 찾아서 추가
 		for(int i = 0; i < cacheTable.size(); i++) {
-			if(Arrays.equals(cacheTable.get(i).getIpAddr(),givenData.getIpAddr())) {
+			if(Arrays.equals(cacheTable.get(i).getIpAddr(), sendIp)) {
 
 				//값을 변경함
-				cacheTable.set(i, givenData);
+				System.arraycopy(sendMac, 0, cacheTable.get(i).macAddr, 0, ARP_LEN_MAC_VALUE);
+				cacheTable.get(i).status = status;
 
 				return;
 			}
@@ -570,11 +582,13 @@ public class ARPLayer implements BaseLayer {
 	}
 
 	class CacheData{
+		private int cacheCount;
 		private byte[] macAddr;
 		private byte[] ipAddr;
 		private int status;
 
-		public CacheData(byte[] cacheMac, byte[] cacheIp, int newStatus) {
+		public CacheData(int cacheCount, byte[] cacheMac, byte[] cacheIp, int newStatus) {
+			this.cacheCount = cacheCount;
 			this.macAddr = cacheMac;
 			this.ipAddr = cacheIp;
 			this.status = newStatus;
