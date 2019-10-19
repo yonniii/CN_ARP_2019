@@ -468,15 +468,15 @@ public class ARPLayer implements BaseLayer {
 		proxyTable.remove(proxyTable.size()-1);
 	}
 
-	//Application용 mac주소
-	public byte[] macaddr_byte(_ARP_MAC_ADDR addr) {
-		return addr.addr;
-	}
+//	//Application용 mac주소
+//	public byte[] macaddr_byte(_ARP_MAC_ADDR addr) {
+//		return addr.addr;
+//	}
 
-	//Application용 IP주소
-	public byte[] ipaddr_byte(_ARP_IP_ADDR addr) {
-		return addr.addr;
-	}
+//	//Application용 IP주소
+//	public byte[] ipaddr_byte(_ARP_IP_ADDR addr) {
+//		return addr.addr;
+//	}
 
 	public void cacheThread(int status, List<CacheData> cacheTable, int index) {
 		Table_Thread thread = new Table_Thread(status, cacheTable, index);
