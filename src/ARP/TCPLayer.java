@@ -21,6 +21,7 @@ public class TCPLayer implements BaseLayer {
         int dstPortSize = 2;
         int srcPortSize = 2;
         int headerSize;
+        int offsetIndex = 16;
 
         public _TCP_HEADER() {
             this.tcpDSTPort = new byte[dstPortSize];
@@ -46,10 +47,16 @@ public class TCPLayer implements BaseLayer {
     public ArrayList<BaseLayer> p_aUnderLayer = new ArrayList<BaseLayer>();
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
 
+    byte chatType = (byte) 1;
+    byte fileType = (byte) 2;
+
     public TCPLayer(String pName) {
         pLayerName = pName;
         ResetHeader();
+        setSrcPort(8888);
+        setDstPort(8888);
     }
+
 
     public void ResetHeader() {
         tcpHeader = new _TCP_HEADER();
@@ -59,6 +66,7 @@ public class TCPLayer implements BaseLayer {
         byte[] buf = new byte[length + header.headerSize];
         System.arraycopy(header.tcpDSTPort, 0, buf, header.dstIndex, header.dstPortSize);
         System.arraycopy(header.tcpSrcPort, 0, buf, header.dstIndex + header.dstPortSize, header.srcPortSize);
+        buf[header.offsetIndex] = header.tcpOffset;
         if( length != 0 )
             System.arraycopy(header.tcpData, 0, buf, header.headerSize, length);
         return buf;
@@ -79,9 +87,21 @@ public class TCPLayer implements BaseLayer {
             return input.length;
         }
     }
+    public boolean Send(byte[]input, byte type){
+        tcpHeader.tcpOffset = type;
+        tcpHeader.tcpData = input;
+        int dataLen = getInputSize(input);
+        byte[] buf = ObjToByte(tcpHeader, dataLen);
+        int bufSize = dataLen + tcpHeader.headerSize;
+        if (((IPLayer) this.GetUnderLayer(0)).Send(buf, bufSize))
+            return true;
+        else
+            return false;
+    }
 
     public boolean Send(byte[] input) {
         tcpHeader.tcpData = input;
+
         int dataLen = getInputSize(input);
         byte[] buf = ObjToByte(tcpHeader, dataLen);
         int bufSize = dataLen + tcpHeader.headerSize;
@@ -94,16 +114,31 @@ public class TCPLayer implements BaseLayer {
     public boolean Receive(byte[] input) {
         if (!IsItMyPort(input))
             return false;
-        byte[] buf = removeTCPHeader(input, input.length);
-        if (((ApplicationLayer) this.GetUpperLayer(0)).Receive(buf))
-            return true;
-        else
-            return false;
+        byte type = input[16];
+        if(type == chatType){
+            byte[] buf = removeTCPHeader(input, input.length);
+            if (((ChatAppLayer) this.GetUpperLayer(0)).Receive(buf))
+                return true;
+            else
+                return false;
+        }else if( type == fileType){
+            byte[] buf = removeTCPHeader(input, input.length);
+            if (((FileAppLayer) this.GetUpperLayer(1)).Receive(buf))
+                return true;
+            else
+                return false;
+        }
+        return false;
+    }
+
+    public boolean IPCollision(){
+        ((ChatAppLayer) this.GetUpperLayer(0)).IPCollision();
+        return true;
     }
 
     private boolean IsItMyPort(byte[] input) {
         for (int i = 0; i < tcpHeader.srcPortSize; i++) {
-            if (tcpHeader.tcpSrcPort[i] == input[i + tcpHeader.dstIndex]) //목적지이더넷주소가 자신의이더넷주소가아니면 false와 break
+            if (tcpHeader.tcpSrcPort[i] == input[i + tcpHeader.dstIndex])
                 continue;
             else {
                 System.out.println("It isn't MyPort");
@@ -120,7 +155,7 @@ public class TCPLayer implements BaseLayer {
         return buf;
     }
 
-    byte[] intToByte4(int value) { //바이트로 변경.
+    byte[] intToByte4(int value) {
         byte[] temp = new byte[4];
 
         temp[0] |= (byte) ((value & 0xFF000000) >> 24);
@@ -131,7 +166,7 @@ public class TCPLayer implements BaseLayer {
         return temp;
     }
 
-    byte[] intToByte2(int value) { //정수형을 byte 2배열로 바꿈.
+    byte[] intToByte2(int value) {
         byte[] temp = new byte[2];
         temp[1] = (byte) (value >> 8);
         temp[0] = (byte) value;
