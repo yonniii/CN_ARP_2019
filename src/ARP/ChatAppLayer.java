@@ -1,6 +1,8 @@
 package ARP;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+
 
 public class ChatAppLayer implements BaseLayer{
     public int nUpperLayerCount = 0;
@@ -9,51 +11,30 @@ public class ChatAppLayer implements BaseLayer{
     public ArrayList<BaseLayer> p_aUnderLayer = new ArrayList<BaseLayer>();
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
 
-    private class _CAPP_HEADER{
-        byte[] capp_totlen;
-        byte capp_type;
-        byte capp_unused;
-        byte[] capp_data;
-
-        public _CAPP_HEADER(){
-            this.capp_totlen = new byte[2];
-            this.capp_type = 0x00;
-            this.capp_unused = 0x00;
-            this.capp_data = null;
-        }
-    }
-
-    _CAPP_HEADER m_sHeader = new _CAPP_HEADER();
-
     public ChatAppLayer(String pName) {
-        //super(pName);
-        // TODO Auto-generated constructor stub
-        pLayerName = pName;
-        //ResetHeader();
+       pLayerName = pName;
     }
 
-    public void ResetHeader(){
-
-    }
-
-    public byte[] ObjToByte(_CAPP_HEADER Header, byte[] input, int length){
-
-        return null;
-    }
 
     public boolean Send(byte[] input, int length) {
-
+       byte type_chat = (byte)1;
+        if(((TCPLayer)GetUnderLayer(0)).Send(input,type_chat))
+            return true;
         return false;
     }
-//
-//    public byte[] RemoveCappHeader(byte[] input, int length){
-//
-//    }
+    
 
     public boolean Receive(byte[] input){
-
+       if(((ApplicationLayer)GetUpperLayer(0)).Receive(input))
+            return true;
+        return false;
+    }
+    
+    public boolean IPCollision(){
+        ((ApplicationLayer) this.GetUpperLayer(0)).IPCollision();
         return true;
     }
+    
     @Override
     public void SetUnderLayer(BaseLayer pUnderLayer) {
         // TODO Auto-generated method stub
